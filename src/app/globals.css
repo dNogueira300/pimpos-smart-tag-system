@@ -1,26 +1,203 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paleta Pimpos - Sistema de Gestión */
+  --background: #FFFEF7;
+  --foreground: #1F2937;
+
+  /* Colores principales del sistema */
+  --pimpos-cream: #FFF6DA;
+  --pimpos-orange: #E37836;
+  --pimpos-input: #FFFEF7;
+  --pimpos-primary: #8B4513;
+  --pimpos-secondary: #DAA520;
+
+  /* Fondos en jerarquía */
+  --bg-primary: #FFFEF7;
+  /* Fondo base */
+  --bg-secondary: #FFF6DA;
+  /* Contenedores principales */
+  --bg-tertiary: #F7E6D7;
+  /* Elementos internos */
+  --bg-hover: #E37836;
+  /* Estados hover */
+
+  /* Superficies con glassmorphism */
+  --surface-glass: rgba(255, 246, 218, 0.95);
+  --surface-card: rgba(255, 254, 247, 0.9);
+
+  /* Textos */
+  --text-primary: #1F2937;
+  /* Texto principal */
+  --text-secondary: #374151;
+  /* Texto secundario */
+  --text-muted: #6B7280;
+  /* Texto deshabilitado */
+
+  /* Bordes */
+  --border-primary: #E37836;
+  /* Bordes principales */
+  --border-secondary: #DAA520;
+  /* Bordes secundarios */
+  --border-subtle: rgba(227, 120, 54, 0.2);
+
+  /* Estados */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Clases utilitarias para Pimpos */
+.bg-pimpos-cream {
+  background-color: var(--pimpos-cream);
+}
+
+.bg-pimpos-input {
+  background-color: var(--pimpos-input);
+}
+
+.bg-pimpos-dark {
+  background-color: #D4A574;
+}
+
+.border-pimpos-orange {
+  border-color: var(--pimpos-orange);
+}
+
+.text-pimpos-primary {
+  color: var(--pimpos-primary);
+}
+
+.bg-surface-glass {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bg-surface-card {
+  background: var(--surface-card);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.border-themed {
+  border-color: var(--border-subtle);
+}
+
+.text-themed-primary {
+  color: var(--text-primary);
+}
+
+.text-themed-secondary {
+  color: var(--text-secondary);
+}
+
+.text-themed-muted {
+  color: var(--text-muted);
+}
+
+/* Componentes específicos */
+.login-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  background-color: var(--pimpos-input);
+  border: 2px solid var(--pimpos-orange);
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.login-input::placeholder {
+  color: var(--text-muted);
+}
+
+.login-input:hover {
+  box-shadow: 0 2px 4px rgba(227, 120, 54, 0.1);
+}
+
+.login-input:focus {
+  border-color: var(--pimpos-orange);
+  box-shadow: 0 0 0 3px rgba(227, 120, 54, 0.1);
+}
+
+.login-button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--pimpos-orange);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #D26B32;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Efectos de hover para elementos interactivos */
+.hover-pimpos:hover {
+  background-color: rgba(227, 120, 54, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Animaciones */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Scrollbars personalizados */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pimpos-orange);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D26B32;
 }

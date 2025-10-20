@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Modelo de usuarios administradores
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  email     String?  @unique
+  name      String?
+  role      String   @default("admin")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  createdProducts Product[]      @relation("CreatedByUser")
+  priceHistories  PriceHistory[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+// Modelo de categorías de productos
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?  @default("#FF8C42") // Color para la UI
+  icon        String?  @default("package") // Icono de Lucide React
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  products Product[]
+
+  @@map("categories")
+}
+
+// Modelo principal de productos
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  code        String   @unique // Código único del producto
+  barcode     String?  @unique // Código de barras si existe
+  price       Decimal  @db.Decimal(10, 2)
+  categoryId  String
+  createdById String
+
+  // Fechas importantes
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  manufacturedAt DateTime? // Fecha de elaboración
+  expiresAt      DateTime? // Fecha de vencimiento
+
+  // Información adicional
+  imageUrl    String? // URL de la imagen del producto
+  qrCodePath  String? // Ruta del archivo QR generado
+  ingredients String? // Lista de ingredientes separada por comas
+  allergens   String? // Alérgenos separados por comas
+
+  // Información nutricional (por 100g/ml)
+  servingSize  String? // Tamaño de la porción (ej: "1 rebanada", "100g")
+  calories     Float?  // Calorías
+  totalFat     Float?  // Grasas totales (g)
+  saturatedFat Float?  // Grasas saturadas (g)
+  transFat     Float?  // Grasas trans (g)
+  cholesterol  Float?  // Colesterol (mg)
+  sodium       Float?  // Sodio (mg)
+  totalCarbs   Float?  // Carbohidratos totales (g)
+  dietaryFiber Float?  // Fibra dietética (g)
+  sugars       Float?  // Azúcares (g)
+  addedSugars  Float?  // Azúcares añadidos (g)
+  protein      Float?  // Proteínas (g)
+
+  // Vitaminas y minerales adicionales (opcional)
+  vitaminA   Float? // Vitamina A (μg)
+  vitaminC   Float? // Vitamina C (mg)
+  calcium    Float? // Calcio (mg)
+  iron       Float? // Hierro (mg)
+  potassium  Float? // Potasio (mg)
+  magnesium  Float? // Magnesio (mg)
+
+  // Octágonos de advertencia (según ley peruana)
+  highSodium   Boolean @default(false) // Alto en sodio
+  highSugar    Boolean @default(false) // Alto en azúcar
+  highSatFat   Boolean @default(false) // Alto en grasas saturadas
+  highTransFat Boolean @default(false) // Alto en grasas trans
+
+  // Estados
+  isActive     Boolean @default(true)  // Si está activo en el catálogo
+  isPerishable Boolean @default(false) // Si es perecedero
+  isFeatured   Boolean @default(false) // Si es producto destacado
+  hasPromotion Boolean @default(false) // Si tiene promoción activa
+
+  // Información de promoción
+  promotionText        String?  // Texto de la promoción
+  promotionPrice       Decimal? @db.Decimal(10, 2) // Precio promocional
+  promotionStartDate   DateTime? // Inicio de promoción
+  promotionEndDate     DateTime? // Fin de promoción
+  promotionDescription String?  // Descripción de la promoción
+
+  // Metadatos para control
+  lastQrGenerated DateTime? // Última vez que se generó el QR
+  viewCount       Int       @default(0) // Veces que se ha visto el producto
+  scanCount       Int       @default(0) // Veces que se ha escaneado el QR
+
+  // Relaciones
+  category       Category       @relation(fields: [categoryId], references: [id])
+  createdBy      User           @relation("CreatedByUser", fields: [createdById], references: [id])
+  priceHistory   PriceHistory[]
+  auditLogs      AuditLog[]
+
+  @@map("products")
+}
+
+// Historial de cambios de precios
+model PriceHistory {
+  id        String   @id @default(cuid())
+  productId String
+  oldPrice  Decimal  @db.Decimal(10, 2)
+  newPrice  Decimal  @db.Decimal(10, 2)
+  changedBy String
+  reason    String? // Razón del cambio
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [changedBy], references: [id])
+
+  @@index([productId])
+  @@index([createdAt])
+  @@map("price_history")
+}
+
+// Log de auditoría para cambios importantes
+model AuditLog {
+  id        String   @id @default(cuid())
+  productId String?
+  userId    String
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
+  entity    String   // PRODUCT, CATEGORY, USER, SYSTEM
+  oldData   Json?    // Estado anterior (para UPDATE y DELETE)
+  newData   Json?    // Estado nuevo (para CREATE y UPDATE)
+  ipAddress String?  // IP desde donde se hizo el cambio
+  userAgent String?  // Navegador/dispositivo
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+// Configuración del sistema
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String   @default("general") // general, nutrition, qr, alerts
+  dataType    String   @default("string")  // string, number, boolean, json
+  isEditable  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@map("system_config")
+}
+
+// Modelo para tracking de sesiones de compra (cliente)
+model ShoppingSession {
+  id            String   @id @default(cuid())
+  sessionId     String   @unique // ID único de la sesión
+  budget        Decimal? @db.Decimal(10, 2) // Presupuesto establecido
+  totalSpent    Decimal  @default(0) @db.Decimal(10, 2) // Total gastado
+  itemCount     Int      @default(0) // Número de items
+  lastActivity  DateTime @default(now()) // Última actividad
+  isCompleted   Boolean  @default(false) // Si completó la compra
+  createdAt     DateTime @default(now())
+
+  // Relaciones
+  items ShoppingSessionItem[]
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("shopping_sessions")
+}
+
+// Items en la sesión de compra
+model ShoppingSessionItem {
+  id         String   @id @default(cuid())
+  sessionId  String
+  productId  String
+  quantity   Int      @default(1)
+  unitPrice  Decimal  @db.Decimal(10, 2) // Precio al momento de agregar
+  totalPrice Decimal  @db.Decimal(10, 2) // Precio total del item
+  addedAt    DateTime @default(now())
+
+  // Relaciones
+  session ShoppingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  // No relación directa con Product para mantener histórico
+
+  @@index([sessionId])
+  @@map("shopping_session_items")
+}
