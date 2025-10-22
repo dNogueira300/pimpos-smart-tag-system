@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { Product } from "@/types/product";
 import { useShopping } from "@/contexts/ShoppingContext";
-import { useToast } from "@/contexts/ToastContext";
 import BudgetBar from "@/components/client/BudgetBar";
 import Modal, { ModalActions } from "@/components/client/Modal";
 
@@ -31,7 +30,6 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter();
   const { addToCart, cartState, getItemQuantity } = useShopping();
-  const { showToast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,9 +65,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   const handleAddToCart = () => {
     if (!product) return;
 
-    const currentPrice = product.hasPromotion && product.promotionPrice
-      ? Number(product.promotionPrice)
-      : Number(product.price);
+    const currentPrice =
+      product.hasPromotion && product.promotionPrice
+        ? Number(product.promotionPrice)
+        : Number(product.price);
 
     const totalPrice = currentPrice * quantity;
 
@@ -117,16 +116,41 @@ export default function ProductPage({ params }: ProductPageProps) {
     const days = getDaysUntilExpiry();
     if (days === null) return null;
 
-    if (days < 0) return { text: "Vencido", color: "bg-red-500", textColor: "text-red-900" };
-    if (days === 0) return { text: "Vence hoy", color: "bg-red-500", textColor: "text-red-900" };
-    if (days <= 3) return { text: `Vence en ${days} dias`, color: "bg-red-400", textColor: "text-red-900" };
-    if (days <= 7) return { text: `Vence en ${days} dias`, color: "bg-yellow-400", textColor: "text-yellow-900" };
-    return { text: `Vence: ${new Date(product!.expiresAt!).toLocaleDateString()}`, color: "bg-green-400", textColor: "text-green-900" };
+    if (days < 0)
+      return {
+        text: "Vencido",
+        color: "bg-red-500",
+        textColor: "text-red-900",
+      };
+    if (days === 0)
+      return {
+        text: "Vence hoy",
+        color: "bg-red-500",
+        textColor: "text-red-900",
+      };
+    if (days <= 3)
+      return {
+        text: `Vence en ${days} días`,
+        color: "bg-red-400",
+        textColor: "text-red-900",
+      };
+    if (days <= 7)
+      return {
+        text: `Vence en ${days} días`,
+        color: "bg-yellow-400",
+        textColor: "text-yellow-900",
+      };
+    return {
+      text: `Vence: ${new Date(product!.expiresAt!).toLocaleDateString()}`,
+      color: "bg-green-400",
+      textColor: "text-green-900",
+    };
   };
 
-  const currentPrice = product?.hasPromotion && product?.promotionPrice
-    ? Number(product.promotionPrice)
-    : Number(product?.price || 0);
+  const currentPrice =
+    product?.hasPromotion && product?.promotionPrice
+      ? Number(product.promotionPrice)
+      : Number(product?.price || 0);
 
   const alreadyInCart = product ? getItemQuantity(product.id) : 0;
 
@@ -149,7 +173,9 @@ export default function ProductPage({ params }: ProductPageProps) {
             <AlertTriangle className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-red-900 mb-2">Error</h2>
-          <p className="text-red-700 mb-6">{error || "Producto no encontrado"}</p>
+          <p className="text-red-700 mb-6">
+            {error || "Producto no encontrado"}
+          </p>
           <Link
             href="/client/scan"
             className="inline-block bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold px-6 py-3 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
@@ -164,7 +190,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const expiryStatus = getExpiryStatus();
   const warnings = [
     product.highSodium && "ALTO EN SODIO",
-    product.highSugar && "ALTO EN AZUCARES",
+    product.highSugar && "ALTO EN AZÚCARES",
     product.highSatFat && "ALTO EN GRASAS SATURADAS",
     product.highTransFat && "ALTO EN GRASAS TRANS",
   ].filter(Boolean);
@@ -187,87 +213,83 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
 
-        {/* Contenido */}
+        {/* Contenido principal */}
         <div className="max-w-md mx-auto p-6">
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-amber-200">
+          <div className="space-y-6">
             {/* Imagen del producto */}
-            <div className="relative h-64 bg-gradient-to-br from-amber-50 to-orange-50">
+            <div className="relative aspect-square bg-white rounded-3xl shadow-lg overflow-hidden border-4 border-gray-100">
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
                   alt={product.name}
                   fill
-                  className="object-contain p-4"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <ShoppingCart className="h-24 w-24 text-gray-300" />
+                  <div className="text-center">
+                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ShoppingCart className="h-12 w-12 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 font-medium">Sin imagen</p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Información del producto */}
-            <div className="p-6 space-y-4">
-              {/* Nombre y descripción */}
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {product.name}
-                </h2>
-                {product.description && (
-                  <p className="text-gray-600 text-sm">{product.description}</p>
+            {/* Información básica */}
+            <div className="bg-white rounded-3xl shadow-lg p-6 border-2 border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                {product.name}
+              </h2>
+
+              {/* Precio */}
+              <div className="flex items-center gap-3 mb-4">
+                {product.hasPromotion && product.promotionPrice ? (
+                  <>
+                    <span className="text-3xl font-bold text-[#E37836]">
+                      S/. {Number(product.promotionPrice).toFixed(2)}
+                    </span>
+                    <span className="text-lg text-gray-500 line-through">
+                      S/. {Number(product.price).toFixed(2)}
+                    </span>
+                    {product.promotionText && (
+                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        {product.promotionText}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-3xl font-bold text-[#E37836]">
+                    S/. {Number(product.price).toFixed(2)}
+                  </span>
                 )}
               </div>
 
-              {/* Precio */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4">
-                <p className="text-sm text-gray-600 mb-1">Precio</p>
-                <div className="flex items-baseline gap-3">
-                  {product.hasPromotion && product.promotionPrice ? (
-                    <>
-                      <p className="text-3xl font-bold text-[#B55424]">
-                        S/. {Number(product.promotionPrice).toFixed(2)}
-                      </p>
-                      <p className="text-lg text-gray-500 line-through">
-                        S/. {Number(product.price).toFixed(2)}
-                      </p>
-                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                        OFERTA
-                      </span>
-                    </>
-                  ) : (
-                    <p className="text-3xl font-bold text-[#B55424]">
-                      S/. {Number(product.price).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Fecha de vencimiento */}
+              {/* Estado de vencimiento */}
               {expiryStatus && (
-                <div className={`${expiryStatus.color} rounded-2xl p-4 flex items-center gap-3`}>
-                  <Calendar className={`h-5 w-5 ${expiryStatus.textColor}`} />
-                  <div className="flex-1">
-                    <p className={`text-sm font-bold ${expiryStatus.textColor}`}>
-                      {expiryStatus.text}
-                    </p>
-                    <p className={`text-xs ${expiryStatus.textColor}/80`}>
-                      Producto {product.isPerishable ? "perecedero" : "fresco"}
-                    </p>
-                  </div>
+                <div
+                  className={`${expiryStatus.color} ${expiryStatus.textColor} px-4 py-2 rounded-xl mb-4 flex items-center gap-2`}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span className="font-semibold text-sm">
+                    {expiryStatus.text}
+                  </span>
                 </div>
               )}
 
               {/* Octágonos de advertencia */}
               {warnings.length > 0 && (
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Advertencias Nutricionales
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {warnings.map((warning) => (
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {warnings.map((warning, index) => (
                       <div
-                        key={warning as string}
-                        className="bg-black text-white text-xs font-bold text-center py-2 px-1 rounded-lg clip-octagon"
+                        key={index}
+                        className="bg-black text-white text-xs font-bold px-3 py-2 rounded-lg border-2 border-black"
+                        style={{
+                          clipPath:
+                            "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
+                        }}
                       >
                         {warning}
                       </div>
@@ -276,14 +298,28 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
 
+              {/* Descripción */}
+              {product.description && (
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {product.description}
+                </p>
+              )}
+            </div>
+
+            {/* Secciones expandibles */}
+            <div className="space-y-4">
               {/* Acordeón: Información nutricional */}
-              {(product.calories !== null || product.totalFat !== null) && (
+              {(product.calories !== null ||
+                product.totalFat !== null ||
+                product.totalCarbs !== null ||
+                product.protein !== null ||
+                product.sodium !== null) && (
                 <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
                   <button
                     onClick={() => setShowNutrition(!showNutrition)}
                     className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-semibold py-4 px-4 flex items-center justify-between hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
                   >
-                    <span>Ver informacion nutricional</span>
+                    <span>Ver información nutricional</span>
                     {showNutrition ? (
                       <ChevronUp className="h-5 w-5" />
                     ) : (
@@ -291,44 +327,58 @@ export default function ProductPage({ params }: ProductPageProps) {
                     )}
                   </button>
                   {showNutrition && (
-                    <div className="p-4 bg-white">
-                      <p className="text-xs text-gray-500 mb-3 text-center">
-                        Valores por 100g del producto
-                      </p>
-                      <div className="space-y-2">
+                    <div className="p-4 bg-white space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold mb-3">
+                          INFORMACIÓN NUTRICIONAL (por 100g)
+                        </p>
                         {product.calories !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Energia</span>
-                            <span className="text-sm font-bold">{product.calories} kcal</span>
+                            <span className="text-sm font-medium">Energía</span>
+                            <span className="text-sm">
+                              {product.calories} kcal
+                            </span>
                           </div>
                         )}
                         {product.totalFat !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Grasas totales</span>
-                            <span className="text-sm">{product.totalFat} g</span>
+                            <span className="text-sm font-medium">
+                              Grasas totales
+                            </span>
+                            <span className="text-sm">
+                              {product.totalFat} g
+                            </span>
                           </div>
                         )}
                         {product.saturatedFat !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200 pl-4">
                             <span className="text-xs">Grasas saturadas</span>
-                            <span className="text-xs">{product.saturatedFat} g</span>
+                            <span className="text-xs">
+                              {product.saturatedFat} g
+                            </span>
                           </div>
                         )}
                         {product.totalCarbs !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Carbohidratos</span>
-                            <span className="text-sm">{product.totalCarbs} g</span>
+                            <span className="text-sm font-medium">
+                              Carbohidratos
+                            </span>
+                            <span className="text-sm">
+                              {product.totalCarbs} g
+                            </span>
                           </div>
                         )}
                         {product.sugars !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200 pl-4">
-                            <span className="text-xs">Azucares</span>
+                            <span className="text-xs">Azúcares</span>
                             <span className="text-xs">{product.sugars} g</span>
                           </div>
                         )}
                         {product.protein !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Proteinas</span>
+                            <span className="text-sm font-medium">
+                              Proteínas
+                            </span>
                             <span className="text-sm">{product.protein} g</span>
                           </div>
                         )}
@@ -364,12 +414,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                         <p className="text-xs text-gray-500 font-semibold mb-2">
                           INGREDIENTES
                         </p>
-                        <p className="text-sm text-gray-700">{product.ingredients}</p>
+                        <p className="text-sm text-gray-700">
+                          {product.ingredients}
+                        </p>
                       </div>
                       {product.allergens && (
                         <div>
                           <p className="text-xs text-red-600 font-semibold mb-2">
-                            ALERGENOS
+                            ALÉRGENOS
                           </p>
                           <p className="text-sm text-red-700 font-bold">
                             {product.allergens}
@@ -383,7 +435,9 @@ export default function ProductPage({ params }: ProductPageProps) {
 
               {/* Selector de cantidad */}
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">Cantidad</p>
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Cantidad
+                </p>
                 <div className="flex items-center justify-center gap-4 bg-gray-100 rounded-2xl p-4">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -433,7 +487,11 @@ export default function ProductPage({ params }: ProductPageProps) {
       <BudgetBar />
 
       {/* Modal de éxito */}
-      <Modal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} showCloseButton={false}>
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        showCloseButton={false}
+      >
         <div className="text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-white" />
@@ -466,24 +524,30 @@ export default function ProductPage({ params }: ProductPageProps) {
       </Modal>
 
       {/* Modal de advertencia de presupuesto */}
-      <Modal isOpen={showWarningModal} onClose={() => setShowWarningModal(false)} showCloseButton={false}>
+      <Modal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        showCloseButton={false}
+      >
         <div className="text-center">
           <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="h-8 w-8 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-yellow-900 mb-2">AVISO</h3>
           <p className="text-yellow-800 mb-4">
-            Agregar este producto excedera tu presupuesto
+            Agregar este producto excederá tu presupuesto
           </p>
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-yellow-900">
               <strong>Presupuesto:</strong> S/. {cartState.budget?.toFixed(2)}
             </p>
             <p className="text-sm text-yellow-900">
-              <strong>Ya gastaste:</strong> S/. {cartState.totalSpent.toFixed(2)}
+              <strong>Ya gastaste:</strong> S/.{" "}
+              {cartState.totalSpent.toFixed(2)}
             </p>
             <p className="text-sm text-yellow-900">
-              <strong>Este producto:</strong> S/. {(currentPrice * quantity).toFixed(2)}
+              <strong>Este producto:</strong> S/.{" "}
+              {(currentPrice * quantity).toFixed(2)}
             </p>
             <p className="text-sm font-bold text-yellow-900 mt-2">
               <strong>Exceso:</strong> S/.{" "}
