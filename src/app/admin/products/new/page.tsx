@@ -4,31 +4,81 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Package, Info } from "lucide-react";
+import { ArrowLeft, Package, Info, CheckCircle } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData } from "@/types/product";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
-      // Aquí iría la lógica para enviar los datos al API
-      console.log("Datos del producto:", data);
+      const formData = new FormData();
 
-      // Simular envío
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Agregar todos los campos del producto
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          if (key === "imageFile" && value instanceof File) {
+            formData.append(key, value);
+          } else if (typeof value === "boolean") {
+            formData.append(key, value.toString());
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
 
-      // Redirigir al dashboard o mostrar mensaje de éxito
-      router.push("/admin/products");
+      const response = await fetch("/api/admin/products", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al crear el producto");
+      }
+
+      setShowSuccess(true);
+
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        router.push("/admin/products/list");
+      }, 2000);
     } catch (error) {
       console.error("Error al crear producto:", error);
+      alert(
+        error instanceof Error ? error.message : "Error al crear el producto"
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-green-200 text-center max-w-md">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-green-900 mb-2">
+            ¡Producto Creado!
+          </h2>
+          <p className="text-green-700 mb-4">
+            El producto ha sido creado exitosamente.
+          </p>
+          <div className="w-8 h-8 border-4 border-green-400/20 border-t-green-500 rounded-full animate-spin mx-auto"></div>
+          <p className="text-green-600 text-sm mt-2">
+            Redirigiendo a la lista...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
