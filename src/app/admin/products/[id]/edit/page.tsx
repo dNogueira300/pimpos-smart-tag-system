@@ -258,7 +258,10 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                   Precio actual:
                 </span>
                 <span className="text-blue-700 ml-2">
-                  S/ {product.price.toFixed(2)}
+                  S/{" "}
+                  {typeof product.price === "number"
+                    ? product.price.toFixed(2)
+                    : Number(product.price).toFixed(2)}
                 </span>
               </div>
               <div>

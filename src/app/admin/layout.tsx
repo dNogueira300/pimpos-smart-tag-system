@@ -166,7 +166,7 @@ export default function AdminLayout({
           sidebarCollapsed ? "lg:w-20" : "lg:w-80"
         }`}
       >
-        <div className="bg-[#B55424] border-r-4 border-[#E37836] h-full shadow-2xl relative">
+        <div className="bg-[#B55424] border-r-4 border-[#E37836] h-full shadow-2xl relative z-50">
           <SidebarContent
             currentPath={pathname}
             onSignOut={handleSignOut}

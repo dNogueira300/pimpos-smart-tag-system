@@ -340,6 +340,8 @@ export default function ProductsDashboard() {
           </p>
         </div>
       </div>
+
+      {/* Floating button removed from dashboard; moved to products list page */}
     </div>
   );
 }

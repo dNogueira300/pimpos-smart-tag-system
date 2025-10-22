@@ -516,264 +516,303 @@ export default function ProductsListPage() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#B55424] to-[#E37836] rounded-3xl p-6 shadow-2xl border-4 border-amber-200">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
-              <Package className="h-6 w-6 text-white" />
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#B55424] to-[#E37836] rounded-3xl p-6 shadow-2xl border-4 border-amber-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  Lista de Productos
+                </h1>
+                <p className="text-white/90">
+                  Gestiona todos los productos del catálogo
+                </p>
+              </div>
             </div>
+
+            <div className="mt-4 lg:mt-0 flex flex-wrap gap-3">
+              <Link
+                href="/admin/products/import"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all"
+              >
+                <Upload className="h-4 w-4" />
+                Importar
+              </Link>
+              <button className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all">
+                <Download className="h-4 w-4" />
+                Exportar
+              </button>
+              <Link
+                href="/admin/products/new"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg"
+              >
+                <Plus className="h-4 w-4" />
+                Nuevo Producto
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros y búsqueda */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-amber-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {/* Búsqueda */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Filtro por categoría */}
             <div>
-              <h1 className="text-2xl font-bold text-white">
-                Lista de Productos
-              </h1>
-              <p className="text-white/90">
-                Gestiona todos los productos del catálogo
-              </p>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Ordenar por */}
+            <div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+              >
+                <option value="createdAt">Fecha de creación</option>
+                <option value="name">Nombre</option>
+                <option value="price">Precio</option>
+                <option value="updatedAt">Última actualización</option>
+              </select>
+            </div>
+
+            {/* Orden */}
+            <div>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+              >
+                <option value="desc">Descendente</option>
+                <option value="asc">Ascendente</option>
+              </select>
+            </div>
+
+            {/* Modo de vista */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`flex-1 p-3 rounded-xl transition-all ${
+                  viewMode === "grid"
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                <Grid className="h-5 w-5 mx-auto" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex-1 p-3 rounded-xl transition-all ${
+                  viewMode === "list"
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                <List className="h-5 w-5 mx-auto" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Estadísticas rápidas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Total</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {pagination.total}
+                </p>
+              </div>
+              <Package className="h-8 w-8 text-blue-500" />
             </div>
           </div>
 
-          <div className="mt-4 lg:mt-0 flex flex-wrap gap-3">
-            <Link
-              href="/admin/products/import"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all"
-            >
-              <Upload className="h-4 w-4" />
-              Importar
-            </Link>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all">
-              <Download className="h-4 w-4" />
-              Exportar
-            </button>
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Activos</p>
+                <p className="text-2xl font-bold text-green-900">
+                  {products.filter((p) => p.isActive).length}
+                </p>
+              </div>
+              <Package className="h-8 w-8 text-green-500" />
+            </div>
+          </div>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">
+                  Por vencer
+                </p>
+                <p className="text-2xl font-bold text-orange-900">
+                  {
+                    products.filter((p) => {
+                      const days = getDaysUntilExpiry(
+                        p.expiresAt?.toString() || null
+                      );
+                      return days !== null && days <= 3 && days >= 0;
+                    }).length
+                  }
+                </p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-orange-500" />
+            </div>
+          </div>
+
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">
+                  Destacados
+                </p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {products.filter((p) => p.isFeatured).length}
+                </p>
+              </div>
+              <Package className="h-8 w-8 text-purple-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de productos */}
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 border-4 border-amber-400/20 border-t-amber-500 rounded-full animate-spin"></div>
+              <span className="text-gray-600">Cargando productos...</span>
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
+            <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No hay productos
+            </h3>
+            <p className="text-gray-600 mb-6">
+              No se encontraron productos con los filtros aplicados.
+            </p>
             <Link
               href="/admin/products/new"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#B55424] to-[#E37836] text-white font-semibold rounded-xl hover:from-[#8B5A3C] hover:to-[#B55424] transition-all"
             >
-              <Plus className="h-4 w-4" />
-              Nuevo Producto
+              <Plus className="h-5 w-5" />
+              Agregar primer producto
             </Link>
           </div>
-        </div>
-      </div>
+        ) : (
+          <>
+            {viewMode === "grid" ? renderGridView() : renderListView()}
 
-      {/* Filtros y búsqueda */}
-      <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-amber-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {/* Búsqueda */}
-          <div className="md:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-              />
-            </div>
-          </div>
+            {/* Paginación */}
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-center space-x-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
 
-          {/* Filtro por categoría */}
-          <div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+                <div className="flex space-x-1">
+                  {Array.from(
+                    { length: pagination.totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg ${
+                        currentPage === page
+                          ? "bg-amber-500 text-white"
+                          : "border border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
 
-          {/* Ordenar por */}
-          <div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            >
-              <option value="createdAt">Fecha de creación</option>
-              <option value="name">Nombre</option>
-              <option value="price">Precio</option>
-              <option value="updatedAt">Última actualización</option>
-            </select>
-          </div>
-
-          {/* Orden */}
-          <div>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            >
-              <option value="desc">Descendente</option>
-              <option value="asc">Ascendente</option>
-            </select>
-          </div>
-
-          {/* Modo de vista */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`flex-1 p-3 rounded-xl transition-all ${
-                viewMode === "grid"
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <Grid className="h-5 w-5 mx-auto" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`flex-1 p-3 rounded-xl transition-all ${
-                viewMode === "list"
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <List className="h-5 w-5 mx-auto" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-600 text-sm font-medium">Total</p>
-              <p className="text-2xl font-bold text-blue-900">
-                {pagination.total}
-              </p>
-            </div>
-            <Package className="h-8 w-8 text-blue-500" />
-          </div>
-        </div>
-
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-600 text-sm font-medium">Activos</p>
-              <p className="text-2xl font-bold text-green-900">
-                {products.filter((p) => p.isActive).length}
-              </p>
-            </div>
-            <Package className="h-8 w-8 text-green-500" />
-          </div>
-        </div>
-
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-600 text-sm font-medium">Por vencer</p>
-              <p className="text-2xl font-bold text-orange-900">
-                {
-                  products.filter((p) => {
-                    const days = getDaysUntilExpiry(
-                      p.expiresAt?.toString() || null
-                    );
-                    return days !== null && days <= 3 && days >= 0;
-                  }).length
-                }
-              </p>
-            </div>
-            <AlertTriangle className="h-8 w-8 text-orange-500" />
-          </div>
-        </div>
-
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-600 text-sm font-medium">Destacados</p>
-              <p className="text-2xl font-bold text-purple-900">
-                {products.filter((p) => p.isFeatured).length}
-              </p>
-            </div>
-            <Package className="h-8 w-8 text-purple-500" />
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de productos */}
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 border-4 border-amber-400/20 border-t-amber-500 rounded-full animate-spin"></div>
-            <span className="text-gray-600">Cargando productos...</span>
-          </div>
-        </div>
-      ) : products.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
-          <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No hay productos
-          </h3>
-          <p className="text-gray-600 mb-6">
-            No se encontraron productos con los filtros aplicados.
-          </p>
-          <Link
-            href="/admin/products/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#B55424] to-[#E37836] text-white font-semibold rounded-xl hover:from-[#8B5A3C] hover:to-[#B55424] transition-all"
-          >
-            <Plus className="h-5 w-5" />
-            Agregar primer producto
-          </Link>
-        </div>
-      ) : (
-        <>
-          {viewMode === "grid" ? renderGridView() : renderListView()}
-
-          {/* Paginación */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2 mt-8">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Anterior
-              </button>
-
-              <div className="flex space-x-1">
-                {Array.from(
-                  { length: pagination.totalPages },
-                  (_, i) => i + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 rounded-lg ${
-                      currentPage === page
-                        ? "bg-amber-500 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                <button
+                  onClick={() =>
+                    setCurrentPage(
+                      Math.min(pagination.totalPages, currentPage + 1)
+                    )
+                  }
+                  disabled={currentPage === pagination.totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
               </div>
+            )}
+          </>
+        )}
+      </div>
+      <FloatingNewProductButton />
+    </>
+  );
+}
 
-              <button
-                onClick={() =>
-                  setCurrentPage(
-                    Math.min(pagination.totalPages, currentPage + 1)
-                  )
-                }
-                disabled={currentPage === pagination.totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </>
-      )}
+// Botón flotante 'Nuevo Producto' (aparece en la página de lista de productos)
+export function FloatingNewProductButton() {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="fixed bottom-10 right-16 z-60">
+      <Link
+        href="/admin/products/new"
+        className="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 overflow-hidden"
+        aria-label="Nuevo Producto"
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        onClick={() => setIsExpanded(true)}
+      >
+        {/* Parte del icono - siempre visible */}
+        <div className="p-4">
+          <Plus className="h-5 w-5" />
+        </div>
+
+        {/* Parte del texto - se expande/contrae */}
+        <div
+          className={`transition-all duration-300 ${
+            isExpanded ? "max-w-32 opacity-100 pr-6" : "max-w-0 opacity-0 pr-0"
+          }`}
+        >
+          Nuevo Producto
+        </div>
+      </Link>
     </div>
   );
 }
