@@ -73,7 +73,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     const totalPrice = currentPrice * quantity;
 
-    // Verificar si excederá el presupuesto
+    // Verificar si excederÃ¡ el presupuesto
     if (
       cartState.budget !== null &&
       cartState.totalSpent + totalPrice > cartState.budget
@@ -103,7 +103,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     setShowSuccessModal(true);
   };
 
-  // Calcular días hasta vencimiento
+  // Calcular dÃ­as hasta vencimiento
   const getDaysUntilExpiry = () => {
     if (!product?.expiresAt) return null;
     const expiryDate = new Date(product.expiresAt);
@@ -119,8 +119,8 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     if (days < 0) return { text: "Vencido", color: "bg-red-500", textColor: "text-red-900" };
     if (days === 0) return { text: "Vence hoy", color: "bg-red-500", textColor: "text-red-900" };
-    if (days <= 3) return { text: `Vence en ${days} días`, color: "bg-red-400", textColor: "text-red-900" };
-    if (days <= 7) return { text: `Vence en ${days} días`, color: "bg-yellow-400", textColor: "text-yellow-900" };
+    if (days <= 3) return { text: `Vence en ${days} dias`, color: "bg-red-400", textColor: "text-red-900" };
+    if (days <= 7) return { text: `Vence en ${days} dias`, color: "bg-yellow-400", textColor: "text-yellow-900" };
     return { text: `Vence: ${new Date(product!.expiresAt!).toLocaleDateString()}`, color: "bg-green-400", textColor: "text-green-900" };
   };
 
@@ -164,7 +164,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   const expiryStatus = getExpiryStatus();
   const warnings = [
     product.highSodium && "ALTO EN SODIO",
-    product.highSugar && "ALTO EN AZÚCARES",
+    product.highSugar && "ALTO EN AZUCARES",
     product.highSatFat && "ALTO EN GRASAS SATURADAS",
     product.highTransFat && "ALTO EN GRASAS TRANS",
   ].filter(Boolean);
@@ -206,9 +206,9 @@ export default function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
-            {/* Información del producto */}
+            {/* InformaciÃ³n del producto */}
             <div className="p-6 space-y-4">
-              {/* Nombre y descripción */}
+              {/* Nombre y descripciÃ³n */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   {product.name}
@@ -257,7 +257,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
 
-              {/* Octágonos de advertencia */}
+              {/* OctÃ¡gonos de advertencia */}
               {warnings.length > 0 && (
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -276,14 +276,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
 
-              {/* Acordeón: Información nutricional */}
+              {/* AcordeÃ³n: InformaciÃ³n nutricional */}
               {(product.calories !== null || product.totalFat !== null) && (
                 <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
                   <button
                     onClick={() => setShowNutrition(!showNutrition)}
                     className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-semibold py-4 px-4 flex items-center justify-between hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
                   >
-                    <span>Ver información nutricional</span>
+                    <span>Ver informacion nutricional</span>
                     {showNutrition ? (
                       <ChevronUp className="h-5 w-5" />
                     ) : (
@@ -298,7 +298,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       <div className="space-y-2">
                         {product.calories !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Energía</span>
+                            <span className="text-sm font-medium">Energia</span>
                             <span className="text-sm font-bold">{product.calories} kcal</span>
                           </div>
                         )}
@@ -322,13 +322,13 @@ export default function ProductPage({ params }: ProductPageProps) {
                         )}
                         {product.sugars !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200 pl-4">
-                            <span className="text-xs">Azúcares</span>
+                            <span className="text-xs">Azucares</span>
                             <span className="text-xs">{product.sugars} g</span>
                           </div>
                         )}
                         {product.protein !== null && (
                           <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Proteínas</span>
+                            <span className="text-sm font-medium">Proteinas</span>
                             <span className="text-sm">{product.protein} g</span>
                           </div>
                         )}
@@ -344,7 +344,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
 
-              {/* Acordeón: Ingredientes */}
+              {/* AcordeÃ³n: Ingredientes */}
               {product.ingredients && (
                 <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
                   <button
@@ -369,7 +369,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                       {product.allergens && (
                         <div>
                           <p className="text-xs text-red-600 font-semibold mb-2">
-                            ALÉRGENOS
+                            ALERGENOS
                           </p>
                           <p className="text-sm text-red-700 font-bold">
                             {product.allergens}
@@ -416,7 +416,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               )}
 
-              {/* Botón agregar */}
+              {/* BotÃ³n agregar */}
               <button
                 onClick={handleAddToCart}
                 className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
@@ -432,7 +432,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* Barra de presupuesto */}
       <BudgetBar />
 
-      {/* Modal de éxito */}
+      {/* Modal de Ã©xito */}
       <Modal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} showCloseButton={false}>
         <div className="text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -473,7 +473,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
           <h3 className="text-2xl font-bold text-yellow-900 mb-2">AVISO</h3>
           <p className="text-yellow-800 mb-4">
-            Agregar este producto excederá tu presupuesto
+            Agregar este producto excedera tu presupuesto
           </p>
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-yellow-900">
