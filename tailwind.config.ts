@@ -44,6 +44,7 @@ const config: Config = {
         // NUEVAS (de tu CSS)
         "slide-in-right": "slideInRight 0.3s ease-out",
         "slide-in-left": "slideInLeft 0.3s ease-out",
+        "scale-in": "scaleIn 0.3s ease-out",
       },
       // Keyframes para las animaciones
       keyframes: {
@@ -63,6 +64,10 @@ const config: Config = {
         slideInLeft: {
           from: { transform: "translateX(-100%)", opacity: "0" },
           to: { transform: "translateX(0)", opacity: "1" },
+        },
+        scaleIn: {
+          from: { transform: "scale(0.9)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
         },
       },
     },
