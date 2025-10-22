@@ -57,10 +57,10 @@ export default function CartPage() {
     setIsCompletingSession(true);
     try {
       await completeSession();
-      showToast("¡Compra registrada exitosamente!", "success");
+      showToast("Compra registrada exitosamente!", "success");
       router.push("/client/thank-you");
     } catch (error) {
-      console.error("Error al completar sesión:", error);
+      console.error("Error al completar sesion:", error);
       showToast("Error al finalizar la compra", "error");
     } finally {
       setIsCompletingSession(false);
@@ -85,7 +85,7 @@ export default function CartPage() {
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-white">Mi carrito</h1>
                 <p className="text-white/90 text-sm">
-                  {hasItems ? `${cartState.itemCount} producto(s)` : "Carrito vacío"}
+                  {hasItems ? `${cartState.itemCount} producto(s)` : "Carrito vacio"}
                 </p>
               </div>
             </div>
@@ -95,13 +95,13 @@ export default function CartPage() {
         {/* Contenido */}
         <div className="max-w-md mx-auto p-6">
           {!hasItems ? (
-            /* Carrito vacío */
+            /* Carrito vacÃ­o */
             <div className="bg-white rounded-3xl shadow-2xl p-12 text-center border-4 border-amber-200">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Scan className="h-12 w-12 text-gray-400" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Tu carrito está vacío
+                Tu carrito esta vacio
               </h2>
               <p className="text-gray-600 mb-8">
                 Escanea productos para comenzar tu compra
@@ -117,7 +117,7 @@ export default function CartPage() {
           ) : (
             /* Carrito con productos */
             <div className="space-y-6">
-              {/* Título y botón para vaciar */}
+              {/* TÃ­tulo y botÃ³n para vaciar */}
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">
                   Carrito ({cartState.itemCount})
@@ -153,7 +153,7 @@ export default function CartPage() {
                       )}
                     </div>
 
-                    {/* Información */}
+                    {/* InformaciÃ³n */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 text-sm mb-1 truncate">
                         {item.product.name}
@@ -208,7 +208,7 @@ export default function CartPage() {
                 ))}
               </div>
 
-              {/* Botón para escanear otro producto */}
+              {/* BotÃ³n para escanear otro producto */}
               <Link
                 href="/client/scan"
                 className="w-full bg-yellow-400 text-yellow-900 font-bold py-4 rounded-xl hover:bg-yellow-500 transition-all shadow-lg flex items-center justify-center gap-2"
@@ -278,7 +278,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Botón finalizar */}
+              {/* BotÃ³n finalizar */}
               <button
                 onClick={handleFinish}
                 disabled={isCompletingSession}
@@ -304,15 +304,15 @@ export default function CartPage() {
       {/* Barra de presupuesto */}
       {hasItems && <BudgetBar />}
 
-      {/* Modal de confirmación de eliminación */}
+      {/* Modal de confirmaciÃ³n de eliminaciÃ³n */}
       <Modal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="¿Eliminar producto?"
+        title="Eliminar producto?"
         showCloseButton={false}
       >
         <p className="text-gray-700 mb-6 text-center">
-          ¿Estás seguro de eliminar este producto del carrito?
+          Estas seguro de eliminar este producto del carrito?
         </p>
         <ModalActions>
           <button
@@ -325,20 +325,20 @@ export default function CartPage() {
             onClick={confirmDelete}
             className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-all"
           >
-            Sí, eliminar
+            Si, eliminar
           </button>
         </ModalActions>
       </Modal>
 
-      {/* Modal de confirmación de vaciar carrito */}
+      {/* Modal de confirmaciÃ³n de vaciar carrito */}
       <Modal
         isOpen={showClearModal}
         onClose={() => setShowClearModal(false)}
-        title="¿Vaciar carrito?"
+        title="Vaciar carrito?"
         showCloseButton={false}
       >
         <p className="text-gray-700 mb-6 text-center">
-          ¿Estás seguro de vaciar todo el carrito? Esta acción no se puede deshacer.
+          Estas seguro de vaciar todo el carrito? Esta accion no se puede deshacer.
         </p>
         <ModalActions>
           <button
@@ -351,7 +351,7 @@ export default function CartPage() {
             onClick={confirmClearCart}
             className="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl hover:bg-red-600 transition-all"
           >
-            Sí, vaciar
+            Si, vaciar
           </button>
         </ModalActions>
       </Modal>
