@@ -36,16 +36,32 @@ export default function ProductsDashboard() {
   // Se eliminó la redirección automática para mantener al usuario en el dashboard
 
   useEffect(() => {
-    // Simular carga de estadísticas
-    setTimeout(() => {
-      setStats({
-        totalProducts: 3,
-        activeProducts: 3,
-        expiringProducts: 1,
-        totalCategories: 6,
-      });
-      setIsLoading(false);
-    }, 1000);
+    // Cargar estadísticas reales desde la API
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("/api/admin/stats");
+
+        if (!response.ok) {
+          throw new Error("Error al cargar estadísticas");
+        }
+
+        const data = await response.json();
+        setStats(data);
+      } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+        // En caso de error, mantener los valores en 0
+        setStats({
+          totalProducts: 0,
+          activeProducts: 0,
+          expiringProducts: 0,
+          totalCategories: 0,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
 
   if (isLoading) {
