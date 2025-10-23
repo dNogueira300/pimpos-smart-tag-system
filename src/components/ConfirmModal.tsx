@@ -60,6 +60,7 @@ export default function ConfirmModal({
           iconColor: "text-red-600",
           buttonBg:
             "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+          gradient: "bg-gradient-to-r from-red-500 to-red-600",
         };
       case "warning":
         return {
@@ -67,6 +68,7 @@ export default function ConfirmModal({
           iconColor: "text-amber-600",
           buttonBg:
             "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700",
+          gradient: "bg-gradient-to-r from-amber-500 to-amber-600",
         };
       case "info":
         return {
@@ -74,6 +76,7 @@ export default function ConfirmModal({
           iconColor: "text-blue-600",
           buttonBg:
             "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+          gradient: "bg-gradient-to-r from-blue-500 to-blue-600",
         };
       default:
         return {
@@ -81,6 +84,7 @@ export default function ConfirmModal({
           iconColor: "text-red-600",
           buttonBg:
             "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700",
+          gradient: "bg-gradient-to-r from-red-500 to-red-600",
         };
     }
   };
@@ -98,23 +102,29 @@ export default function ConfirmModal({
       {/* Contenedor del modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
-          className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full transform transition-all"
+          className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full transform transition-all overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Botón de cerrar */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-600" />
-          </button>
-
           {/* Contenido del modal */}
-          <div className="p-8">
+          <div className="p-8 pb-10">
+            {/* Botón de cerrar */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+
             {/* Icono */}
             <div className="flex justify-center mb-6">
               <div
-                className={`${colors.iconBg} rounded-full p-4 ring-8 ring-${type === "danger" ? "red" : type === "warning" ? "amber" : "blue"}-50`}
+                className={`${colors.iconBg} rounded-full p-4 ring-8 ${
+                  type === "danger"
+                    ? "ring-red-50"
+                    : type === "warning"
+                    ? "ring-amber-50"
+                    : "ring-blue-50"
+                }`}
               >
                 <AlertTriangle className={`h-12 w-12 ${colors.iconColor}`} />
               </div>
@@ -150,9 +160,12 @@ export default function ConfirmModal({
             </div>
           </div>
 
-          {/* Decoración - línea inferior */}
+          {/* Línea decorativa - CORREGIDA */}
           <div
-            className={`h-2 ${type === "danger" ? "bg-gradient-to-r from-red-500 to-red-600" : type === "warning" ? "bg-gradient-to-r from-amber-500 to-amber-600" : "bg-gradient-to-r from-blue-500 to-blue-600"} rounded-b-3xl`}
+            className={`h-2 ${colors.gradient} w-full`}
+            style={{
+              marginTop: "-2px", // Compensa cualquier desfase mínimo
+            }}
           />
         </div>
       </div>
