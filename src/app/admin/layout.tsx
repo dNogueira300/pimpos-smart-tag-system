@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
+import { ToastProvider } from "@/components/ToastContainer";
 
 // Definir el tipo para la sesión
 interface UserSession {
@@ -139,86 +140,88 @@ export default function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-      {/* Sidebar para móvil */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 w-80 bg-[#B55424] border-r-4 border-[#E37836] shadow-2xl">
+    <ToastProvider>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+        {/* Sidebar para móvil */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div className="fixed inset-y-0 left-0 w-80 bg-[#B55424] border-r-4 border-[#E37836] shadow-2xl">
+              <SidebarContent
+                onItemClick={() => setSidebarOpen(false)}
+                currentPath={pathname}
+                onSignOut={handleSignOut}
+                session={session}
+                collapsed={false}
+                onToggleCollapse={toggleSidebarCollapse}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar para desktop */}
+        <div
+          className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300 ${
+            sidebarCollapsed ? "lg:w-20" : "lg:w-80"
+          }`}
+        >
+          <div className="bg-[#B55424] border-r-4 border-[#E37836] h-full shadow-2xl relative z-50">
             <SidebarContent
-              onItemClick={() => setSidebarOpen(false)}
               currentPath={pathname}
               onSignOut={handleSignOut}
               session={session}
-              collapsed={false}
+              collapsed={sidebarCollapsed}
               onToggleCollapse={toggleSidebarCollapse}
             />
           </div>
         </div>
-      )}
 
-      {/* Sidebar para desktop */}
-      <div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300 ${
-          sidebarCollapsed ? "lg:w-20" : "lg:w-80"
-        }`}
-      >
-        <div className="bg-[#B55424] border-r-4 border-[#E37836] h-full shadow-2xl relative z-50">
-          <SidebarContent
-            currentPath={pathname}
-            onSignOut={handleSignOut}
-            session={session}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={toggleSidebarCollapse}
-          />
-        </div>
-      </div>
-
-      {/* Contenido principal */}
-      <div
-        className={`transition-all duration-300 ${
-          sidebarCollapsed ? "lg:pl-20" : "lg:pl-80"
-        }`}
-      >
-        {/* Header */}
-        <div className="sticky top-0 z-40 flex h-20 items-center gap-x-4 bg-[#B55424] px-4 shadow-lg border-b-4 border-[#E37836] sm:gap-x-6 lg:px-6">
-          <button
-            type="button"
-            className="p-3 text-white hover:bg-[#E37836]/20 rounded-xl transition-all lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-
-          {/* Espacio flexible para empujar el contenido a la derecha */}
-          <div className="flex-1"></div>
-
-          <div className="flex items-center gap-x-6">
-            <div className="text-right">
-              <div className="text-sm font-semibold text-white">
-                {session?.user?.name || session?.user?.username}
-              </div>
-              <div className="text-xs text-white/80">Administrador</div>
-            </div>
+        {/* Contenido principal */}
+        <div
+          className={`transition-all duration-300 ${
+            sidebarCollapsed ? "lg:pl-20" : "lg:pl-80"
+          }`}
+        >
+          {/* Header */}
+          <div className="sticky top-0 z-40 flex h-20 items-center gap-x-4 bg-[#B55424] px-4 shadow-lg border-b-4 border-[#E37836] sm:gap-x-6 lg:px-6">
             <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl hover:scale-105 transform duration-200"
+              type="button"
+              className="p-3 text-white hover:bg-[#E37836]/20 rounded-xl transition-all lg:hidden"
+              onClick={() => setSidebarOpen(true)}
             >
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
+              <Menu className="h-6 w-6" />
             </button>
-          </div>
-        </div>
 
-        {/* Contenido de la página */}
-        <main className="py-8">
-          <div className="mx-auto max-w-[95%] px-4 lg:px-6">{children}</div>
-        </main>
+            {/* Espacio flexible para empujar el contenido a la derecha */}
+            <div className="flex-1"></div>
+
+            <div className="flex items-center gap-x-6">
+              <div className="text-right">
+                <div className="text-sm font-semibold text-white">
+                  {session?.user?.name || session?.user?.username}
+                </div>
+                <div className="text-xs text-white/80">Administrador</div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl hover:scale-105 transform duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+
+          {/* Contenido de la página */}
+          <main className="py-8">
+            <div className="mx-auto max-w-[95%] px-4 lg:px-6">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }
 

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Product, Category } from "@/types/product";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useToast } from "@/components/ToastContainer";
 
 interface ProductsResponse {
   products: Product[];
@@ -37,6 +38,8 @@ export default function ProductsListPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const { showSuccess, showError } = useToast();
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,14 +139,20 @@ export default function ProductsListPage() {
 
       if (response.ok) {
         await fetchProducts(); // Recargar la lista
-        // Mostrar mensaje de éxito (opcional: puedes agregar un toast aquí)
+        showSuccess(
+          "Producto eliminado",
+          `El producto "${productToDelete.name}" se eliminó correctamente`
+        );
       } else {
         const error = await response.json();
-        alert(`Error al eliminar producto: ${error.error}`);
+        showError("Error al eliminar producto", error.error);
       }
     } catch (error) {
       console.error("Error al eliminar producto:", error);
-      alert("Error al eliminar producto");
+      showError(
+        "Error al eliminar producto",
+        "No se pudo conectar con el servidor"
+      );
     } finally {
       setProductToDelete(null);
     }
