@@ -127,9 +127,12 @@ export default function ProductsListPage() {
     if (!productToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/products/${productToDelete.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/products/${productToDelete.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         await fetchProducts(); // Recargar la lista
