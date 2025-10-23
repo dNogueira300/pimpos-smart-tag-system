@@ -20,6 +20,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { Product, Category } from "@/types/product";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface ProductsResponse {
   products: Product[];
@@ -51,6 +52,13 @@ export default function ProductsListPage() {
     total: 0,
     totalPages: 0,
   });
+
+  // Modal de confirmación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Cargar productos
   const fetchProducts = useCallback(async () => {
@@ -108,23 +116,24 @@ export default function ProductsListPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Eliminar producto
-  const handleDeleteProduct = async (
-    productId: string,
-    productName: string
-  ) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar "${productName}"?`)) {
-      return;
-    }
+  // Abrir modal de confirmación para eliminar
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    setProductToDelete({ id: productId, name: productName });
+    setShowDeleteModal(true);
+  };
+
+  // Confirmar eliminación del producto
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetch(`/api/admin/products/${productToDelete.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
         await fetchProducts(); // Recargar la lista
-        alert("Producto eliminado exitosamente");
+        // Mostrar mensaje de éxito (opcional: puedes agregar un toast aquí)
       } else {
         const error = await response.json();
         alert(`Error al eliminar producto: ${error.error}`);
@@ -132,6 +141,8 @@ export default function ProductsListPage() {
     } catch (error) {
       console.error("Error al eliminar producto:", error);
       alert("Error al eliminar producto");
+    } finally {
+      setProductToDelete(null);
     }
   };
 
@@ -780,6 +791,26 @@ export default function ProductsListPage() {
           </>
         )}
       </div>
+
+      {/* Modal de confirmación */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setProductToDelete(null);
+        }}
+        onConfirm={confirmDeleteProduct}
+        title="Eliminar producto"
+        message={
+          productToDelete
+            ? `¿Estás seguro de que deseas eliminar el producto "${productToDelete.name}"? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
       <FloatingNewProductButton />
     </>
   );
