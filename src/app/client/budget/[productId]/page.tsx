@@ -1,7 +1,7 @@
 // src/app/client/budget/[productId]/page.tsx
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { DollarSign, Skip, ArrowRight } from "lucide-react";
@@ -12,15 +12,10 @@ export default function BudgetPage({
 }: {
   params: Promise<{ productId: string }>;
 }) {
+  const { productId } = use(params);
   const router = useRouter();
   const { setBudget, markBudgetAsConfigured } = useShopping();
   const [budgetValue, setBudgetValue] = useState("");
-  const [productId, setProductId] = useState<string>("");
-
-  // Unwrap params
-  useState(() => {
-    params.then((p) => setProductId(p.productId));
-  });
 
   const handleSetBudget = () => {
     const budget = parseFloat(budgetValue);

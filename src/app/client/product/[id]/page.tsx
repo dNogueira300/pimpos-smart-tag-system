@@ -1,7 +1,7 @@
 // src/app/client/product/[id]/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   CheckCircle,
   ShoppingCart,
+  Info,
 } from "lucide-react";
 import { Product } from "@/types/product";
 import { useShopping } from "@/contexts/ShoppingContext";
@@ -22,12 +23,13 @@ import BudgetBar from "@/components/client/BudgetBar";
 import Modal, { ModalActions } from "@/components/client/Modal";
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function ProductPage({ params }: ProductPageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const { addToCart, cartState, getItemQuantity, budgetConfigured } = useShopping();
 
@@ -43,15 +45,15 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Redirigir a configuración de presupuesto si es la primera vez
   useEffect(() => {
     if (!budgetConfigured) {
-      router.replace(`/client/budget/${params.id}`);
+      router.replace(`/client/budget/${id}`);
     }
-  }, [budgetConfigured, params.id, router]);
+  }, [budgetConfigured, id, router]);
 
   // Cargar producto
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/client/products/${params.id}`);
+        const response = await fetch(`/api/client/products/${id}`);
         if (!response.ok) {
           throw new Error("Producto no encontrado");
         }
@@ -69,7 +71,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     if (budgetConfigured) {
       fetchProduct();
     }
-  }, [params.id, budgetConfigured]);
+  }, [id, budgetConfigured]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -111,11 +113,10 @@ export default function ProductPage({ params }: ProductPageProps) {
     setShowSuccessModal(true);
   };
 
-  // Calcular días hasta vencimiento
   const getDaysUntilExpiry = () => {
     if (!product?.expiresAt) return null;
-    const expiryDate = new Date(product.expiresAt);
     const today = new Date();
+    const expiryDate = new Date(product.expiresAt);
     const diffTime = expiryDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -129,30 +130,30 @@ export default function ProductPage({ params }: ProductPageProps) {
       return {
         text: "Vencido",
         color: "bg-red-500",
-        textColor: "text-red-900",
+        textColor: "text-white",
       };
     if (days === 0)
       return {
         text: "Vence hoy",
         color: "bg-red-500",
-        textColor: "text-red-900",
+        textColor: "text-white",
       };
     if (days <= 3)
       return {
-        text: `Vence en ${days} días`,
-        color: "bg-red-400",
-        textColor: "text-red-900",
+        text: `Vence en ${days} día${days > 1 ? "s" : ""}`,
+        color: "bg-orange-500",
+        textColor: "text-white",
       };
     if (days <= 7)
       return {
         text: `Vence en ${days} días`,
-        color: "bg-yellow-400",
-        textColor: "text-yellow-900",
+        color: "bg-yellow-500",
+        textColor: "text-gray-900",
       };
     return {
       text: `Vence: ${new Date(product!.expiresAt!).toLocaleDateString()}`,
-      color: "bg-green-400",
-      textColor: "text-green-900",
+      color: "bg-green-500",
+      textColor: "text-white",
     };
   };
 
@@ -165,7 +166,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-[#E37836]/20 border-t-[#E37836] rounded-full animate-spin"></div>
           <p className="text-gray-600 font-medium">Cargando producto...</p>
@@ -176,7 +177,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl shadow-2xl p-8 text-center max-w-md">
           <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="h-8 w-8 text-white" />
@@ -206,99 +207,131 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <div className="min-h-screen pb-32">
+      <div className="min-h-screen bg-gray-50 pb-32">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#E37836] to-[#B55424] p-6 shadow-lg sticky top-0 z-30">
-          <div className="max-w-md mx-auto flex items-center gap-4">
+        <div className="bg-gradient-to-r from-[#E37836] to-[#B55424] p-4 shadow-lg sticky top-0 z-30">
+          <div className="max-w-3xl mx-auto flex items-center gap-4">
             <Link
               href="/client/scan"
               className="p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all"
             >
-              <ArrowLeft className="h-6 w-6 text-white" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Link>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-white">SmartTag Pimpos</h1>
+              <h1 className="text-lg font-bold text-white">Información del Producto</h1>
             </div>
+            {cartState.itemCount > 0 && (
+              <Link
+                href="/client/cart"
+                className="relative p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-all"
+              >
+                <ShoppingCart className="h-5 w-5 text-white" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartState.itemCount}
+                </span>
+              </Link>
+            )}
           </div>
         </div>
 
+        {/* Barra de presupuesto */}
+        {cartState.budget !== null && <BudgetBar />}
+
         {/* Contenido principal */}
-        <div className="max-w-md mx-auto p-6">
-          <div className="space-y-6">
+        <div className="max-w-3xl mx-auto p-4 space-y-4">
+          {/* Card principal del producto */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {/* Imagen del producto */}
-            <div className="relative aspect-square bg-white rounded-3xl shadow-lg overflow-hidden border-4 border-gray-100">
+            <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200">
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
                   alt={product.name}
                   fill
-                  className="object-cover"
+                  className="object-contain p-4"
+                  priority
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ShoppingCart className="h-12 w-12 text-gray-400" />
+                    <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <ShoppingCart className="h-10 w-10 text-gray-500" />
                     </div>
-                    <p className="text-gray-500 font-medium">Sin imagen</p>
+                    <p className="text-gray-500 font-medium">Sin imagen disponible</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Información básica */}
-            <div className="bg-white rounded-3xl shadow-lg p-6 border-2 border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                {product.name}
-              </h2>
+            {/* Información del producto */}
+            <div className="p-6 space-y-4">
+              {/* Nombre y categoría */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                  {product.name}
+                </h2>
+                {product.category && (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white"
+                      style={{ backgroundColor: product.category.color }}
+                    >
+                      {product.category.name}
+                    </span>
+                    {product.isFeatured && (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                        ⭐ Destacado
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Precio */}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-baseline gap-3">
                 {product.hasPromotion && product.promotionPrice ? (
                   <>
-                    <span className="text-3xl font-bold text-[#E37836]">
-                      S/. {Number(product.promotionPrice).toFixed(2)}
+                    <span className="text-4xl font-bold text-[#E37836]">
+                      S/ {Number(product.promotionPrice).toFixed(2)}
                     </span>
-                    <span className="text-lg text-gray-500 line-through">
-                      S/. {Number(product.price).toFixed(2)}
+                    <span className="text-xl text-gray-400 line-through">
+                      S/ {Number(product.price).toFixed(2)}
                     </span>
                     {product.promotionText && (
-                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full ml-auto">
                         {product.promotionText}
                       </span>
                     )}
                   </>
                 ) : (
-                  <span className="text-3xl font-bold text-[#E37836]">
-                    S/. {Number(product.price).toFixed(2)}
+                  <span className="text-4xl font-bold text-[#E37836]">
+                    S/ {Number(product.price).toFixed(2)}
                   </span>
                 )}
               </div>
 
-              {/* Estado de vencimiento */}
+              {/* Fecha de vencimiento */}
               {expiryStatus && (
                 <div
-                  className={`${expiryStatus.color} ${expiryStatus.textColor} px-4 py-2 rounded-xl mb-4 flex items-center gap-2`}
+                  className={`${expiryStatus.color} ${expiryStatus.textColor} px-4 py-3 rounded-xl flex items-center gap-3 font-semibold`}
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-semibold text-sm">
-                    {expiryStatus.text}
-                  </span>
+                  <Calendar className="h-5 w-5 flex-shrink-0" />
+                  <span>{expiryStatus.text}</span>
                 </div>
               )}
 
               {/* Octágonos de advertencia */}
               {warnings.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-2">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-gray-700" />
+                    <h3 className="font-bold text-gray-900">Advertencias Nutricionales</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
                     {warnings.map((warning, index) => (
                       <div
                         key={index}
-                        className="bg-black text-white text-xs font-bold px-3 py-2 rounded-lg border-2 border-black"
-                        style={{
-                          clipPath:
-                            "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
-                        }}
+                        className="bg-black text-white text-center text-xs font-bold px-3 py-3 rounded-lg"
                       >
                         {warning}
                       </div>
@@ -309,191 +342,195 @@ export default function ProductPage({ params }: ProductPageProps) {
 
               {/* Descripción */}
               {product.description && (
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {product.description}
-                </p>
-              )}
-            </div>
-
-            {/* Secciones expandibles */}
-            <div className="space-y-4">
-              {/* Acordeón: Información nutricional */}
-              {(product.calories !== null ||
-                product.totalFat !== null ||
-                product.totalCarbs !== null ||
-                product.protein !== null ||
-                product.sodium !== null) && (
-                <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
-                  <button
-                    onClick={() => setShowNutrition(!showNutrition)}
-                    className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-semibold py-4 px-4 flex items-center justify-between hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
-                  >
-                    <span>Ver información nutricional</span>
-                    {showNutrition ? (
-                      <ChevronUp className="h-5 w-5" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" />
-                    )}
-                  </button>
-                  {showNutrition && (
-                    <div className="p-4 bg-white space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold mb-3">
-                          INFORMACIÓN NUTRICIONAL (por 100g)
-                        </p>
-                        {product.calories !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">Energía</span>
-                            <span className="text-sm">
-                              {product.calories} kcal
-                            </span>
-                          </div>
-                        )}
-                        {product.totalFat !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">
-                              Grasas totales
-                            </span>
-                            <span className="text-sm">
-                              {product.totalFat} g
-                            </span>
-                          </div>
-                        )}
-                        {product.saturatedFat !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200 pl-4">
-                            <span className="text-xs">Grasas saturadas</span>
-                            <span className="text-xs">
-                              {product.saturatedFat} g
-                            </span>
-                          </div>
-                        )}
-                        {product.totalCarbs !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">
-                              Carbohidratos
-                            </span>
-                            <span className="text-sm">
-                              {product.totalCarbs} g
-                            </span>
-                          </div>
-                        )}
-                        {product.sugars !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200 pl-4">
-                            <span className="text-xs">Azúcares</span>
-                            <span className="text-xs">{product.sugars} g</span>
-                          </div>
-                        )}
-                        {product.protein !== null && (
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-sm font-medium">
-                              Proteínas
-                            </span>
-                            <span className="text-sm">{product.protein} g</span>
-                          </div>
-                        )}
-                        {product.sodium !== null && (
-                          <div className="flex justify-between py-2">
-                            <span className="text-sm font-medium">Sal</span>
-                            <span className="text-sm">{product.sodium} mg</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {product.description}
+                    </p>
+                  </div>
                 </div>
               )}
+            </div>
+          </div>
 
-              {/* Acordeón: Ingredientes */}
-              {product.ingredients && (
-                <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
-                  <button
-                    onClick={() => setShowIngredients(!showIngredients)}
-                    className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-semibold py-4 px-4 flex items-center justify-between hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
-                  >
-                    <span>Ver lista de ingredientes</span>
-                    {showIngredients ? (
-                      <ChevronUp className="h-5 w-5" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" />
-                    )}
-                  </button>
-                  {showIngredients && (
-                    <div className="p-4 bg-white space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold mb-2">
-                          INGREDIENTES
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          {product.ingredients}
+          {/* Acordeones de información adicional */}
+          <div className="space-y-3">
+            {/* Información Nutricional */}
+            {product.calories !== null && (
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <button
+                  onClick={() => setShowNutrition(!showNutrition)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Información Nutricional
+                  </span>
+                  {showNutrition ? (
+                    <ChevronUp className="h-5 w-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-600" />
+                  )}
+                </button>
+
+                {showNutrition && (
+                  <div className="px-4 pb-4 space-y-2 border-t border-gray-100">
+                    {product.servingSize && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                        <p className="text-sm font-semibold text-amber-900">
+                          Tamaño de porción: {product.servingSize}
                         </p>
                       </div>
-                      {product.allergens && (
-                        <div>
-                          <p className="text-xs text-red-600 font-semibold mb-2">
-                            ALÉRGENOS
-                          </p>
-                          <p className="text-sm text-red-700 font-bold">
-                            {product.allergens}
-                          </p>
+                    )}
+
+                    <div className="space-y-2 mt-3">
+                      {product.calories !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="font-medium text-gray-700">Calorías</span>
+                          <span className="font-semibold text-gray-900">
+                            {product.calories} kcal
+                          </span>
+                        </div>
+                      )}
+                      {product.totalFat !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="text-gray-700">Grasas totales</span>
+                          <span className="text-gray-900">{product.totalFat} g</span>
+                        </div>
+                      )}
+                      {product.saturatedFat !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100 pl-4">
+                          <span className="text-gray-600 text-sm">Grasas saturadas</span>
+                          <span className="text-gray-800 text-sm">{product.saturatedFat} g</span>
+                        </div>
+                      )}
+                      {product.transFat !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100 pl-4">
+                          <span className="text-gray-600 text-sm">Grasas trans</span>
+                          <span className="text-gray-800 text-sm">{product.transFat} g</span>
+                        </div>
+                      )}
+                      {product.sodium !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="text-gray-700">Sodio</span>
+                          <span className="text-gray-900">{product.sodium} mg</span>
+                        </div>
+                      )}
+                      {product.totalCarbs !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="text-gray-700">Carbohidratos totales</span>
+                          <span className="text-gray-900">{product.totalCarbs} g</span>
+                        </div>
+                      )}
+                      {product.sugars !== null && (
+                        <div className="flex justify-between py-2 border-b border-gray-100 pl-4">
+                          <span className="text-gray-600 text-sm">Azúcares</span>
+                          <span className="text-gray-800 text-sm">{product.sugars} g</span>
+                        </div>
+                      )}
+                      {product.protein !== null && (
+                        <div className="flex justify-between py-2">
+                          <span className="font-medium text-gray-700">Proteínas</span>
+                          <span className="font-semibold text-gray-900">{product.protein} g</span>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Selector de cantidad */}
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  Cantidad
-                </p>
-                <div className="flex items-center justify-center gap-4 bg-gray-100 rounded-2xl p-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-12 bg-white rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center"
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-5 w-5 text-gray-600" />
-                  </button>
-                  <span className="text-3xl font-bold text-gray-900 w-16 text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-12 h-12 bg-white rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center"
-                  >
-                    <Plus className="h-5 w-5 text-gray-600" />
-                  </button>
-                </div>
-                <p className="text-center text-sm text-gray-600 mt-2">
-                  Subtotal: S/. {(currentPrice * quantity).toFixed(2)}
-                </p>
+                  </div>
+                )}
               </div>
+            )}
 
-              {/* Ya en carrito */}
-              {alreadyInCart > 0 && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 text-center">
-                  <p className="text-blue-900 text-sm font-semibold">
-                    Ya tienes {alreadyInCart} unidad(es) en el carrito
-                  </p>
-                </div>
-              )}
+            {/* Ingredientes y Alérgenos */}
+            {(product.ingredients || product.allergens) && (
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <button
+                  onClick={() => setShowIngredients(!showIngredients)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-semibold text-gray-900">
+                    Ingredientes y Alérgenos
+                  </span>
+                  {showIngredients ? (
+                    <ChevronUp className="h-5 w-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-600" />
+                  )}
+                </button>
 
-              {/* Botón agregar */}
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                Agregar al carrito
-              </button>
-            </div>
+                {showIngredients && (
+                  <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+                    {product.ingredients && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Ingredientes:</h4>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {product.ingredients}
+                        </p>
+                      </div>
+                    )}
+                    {product.allergens && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <h4 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          Alérgenos:
+                        </h4>
+                        <p className="text-sm text-red-800 leading-relaxed">
+                          {product.allergens}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Barra de presupuesto */}
-      <BudgetBar />
+      {/* Botón flotante de agregar al carrito */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-40">
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
+          {/* Control de cantidad */}
+          <div className="flex items-center gap-3 bg-gray-100 rounded-xl p-1">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              disabled={quantity <= 1}
+            >
+              <Minus className="h-5 w-5 text-gray-700" />
+            </button>
+            <span className="w-12 text-center font-bold text-gray-900">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity(quantity + 1)}
+              className="p-2 bg-white rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Plus className="h-5 w-5 text-gray-700" />
+            </button>
+          </div>
+
+          {/* Botón agregar */}
+          <button
+            onClick={handleAddToCart}
+            className="flex-1 bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg flex items-center justify-center gap-2"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            <span>
+              Agregar S/ {(currentPrice * quantity).toFixed(2)}
+            </span>
+          </button>
+        </div>
+
+        {/* Mensaje si ya está en el carrito */}
+        {alreadyInCart > 0 && (
+          <div className="max-w-3xl mx-auto mt-2">
+            <p className="text-center text-sm text-gray-600">
+              Ya tienes <span className="font-bold">{alreadyInCart}</span> en tu
+              carrito
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Modal de éxito */}
       <Modal
@@ -506,25 +543,23 @@ export default function ProductPage({ params }: ProductPageProps) {
             <CheckCircle className="h-8 w-8 text-white" />
           </div>
           <h3 className="text-2xl font-bold text-green-900 mb-2">
-            Producto agregado
+            ¡Producto agregado!
           </h3>
-          <p className="text-green-700 mb-1">
-            <strong>{product.name}</strong>
-          </p>
+          <p className="text-green-700 font-semibold mb-1">{product.name}</p>
           <p className="text-green-600 text-sm mb-6">
-            S/. {(currentPrice * quantity).toFixed(2)}
+            S/ {(currentPrice * quantity).toFixed(2)}
           </p>
 
-          <ModalActions className="flex-col">
+          <ModalActions className="flex-col gap-3">
             <button
               onClick={handleContinueShopping}
-              className="w-full bg-yellow-400 text-yellow-900 font-bold py-3 rounded-xl hover:bg-yellow-500 transition-all"
+              className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all"
             >
               Escanear otro producto
             </button>
             <button
               onClick={handleGoToCart}
-              className="w-full bg-gradient-to-r from-[#8B5A3C] to-[#6B4423] text-white font-bold py-3 rounded-xl hover:from-[#6B4423] hover:to-[#4A2F18] transition-all"
+              className="w-full bg-gray-100 text-gray-700 font-semibold py-4 rounded-xl hover:bg-gray-200 transition-all"
             >
               Ver mi carrito
             </button>
@@ -542,42 +577,56 @@ export default function ProductPage({ params }: ProductPageProps) {
           <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="h-8 w-8 text-white" />
           </div>
-          <h3 className="text-2xl font-bold text-yellow-900 mb-2">AVISO</h3>
+          <h3 className="text-2xl font-bold text-yellow-900 mb-2">
+            ⚠️ Excederás tu presupuesto
+          </h3>
           <p className="text-yellow-800 mb-4">
-            Agregar este producto excederá tu presupuesto
+            Agregar este producto superará el límite que estableciste
           </p>
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-yellow-900">
-              <strong>Presupuesto:</strong> S/. {cartState.budget?.toFixed(2)}
-            </p>
-            <p className="text-sm text-yellow-900">
-              <strong>Ya gastaste:</strong> S/.{" "}
-              {cartState.totalSpent.toFixed(2)}
-            </p>
-            <p className="text-sm text-yellow-900">
-              <strong>Este producto:</strong> S/.{" "}
-              {(currentPrice * quantity).toFixed(2)}
-            </p>
-            <p className="text-sm font-bold text-yellow-900 mt-2">
-              <strong>Exceso:</strong> S/.{" "}
-              {(
-                cartState.totalSpent +
-                currentPrice * quantity -
-                (cartState.budget || 0)
-              ).toFixed(2)}
-            </p>
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-yellow-900">Presupuesto:</span>
+              <span className="font-bold text-yellow-900">
+                S/ {cartState.budget?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-yellow-900">Ya gastaste:</span>
+              <span className="font-bold text-yellow-900">
+                S/ {cartState.totalSpent.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-yellow-900">Este producto:</span>
+              <span className="font-bold text-yellow-900">
+                S/ {(currentPrice * quantity).toFixed(2)}
+              </span>
+            </div>
+            <div className="border-t-2 border-yellow-300 pt-2 mt-2">
+              <div className="flex justify-between">
+                <span className="font-bold text-yellow-900">Exceso:</span>
+                <span className="font-bold text-red-600">
+                  S/
+                  {(
+                    cartState.totalSpent +
+                    currentPrice * quantity -
+                    (cartState.budget || 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
           </div>
 
-          <ModalActions className="flex-col">
+          <ModalActions className="flex-col gap-3">
             <button
               onClick={handleAddDespiteWarning}
-              className="w-full bg-yellow-400 text-yellow-900 font-bold py-3 rounded-xl hover:bg-yellow-500 transition-all"
+              className="w-full bg-yellow-500 text-yellow-900 font-bold py-4 rounded-xl hover:bg-yellow-600 transition-all"
             >
               Agregar de todas formas
             </button>
             <button
               onClick={() => setShowWarningModal(false)}
-              className="w-full bg-gradient-to-r from-[#8B5A3C] to-[#6B4423] text-white font-bold py-3 rounded-xl hover:from-[#6B4423] hover:to-[#4A2F18] transition-all"
+              className="w-full bg-gray-100 text-gray-700 font-semibold py-4 rounded-xl hover:bg-gray-200 transition-all"
             >
               Cancelar
             </button>
