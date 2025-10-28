@@ -10,12 +10,12 @@ export default function ThankYouPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
 
+  // Efecto para el countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push("/client");
           return 0;
         }
         return prev - 1;
@@ -23,7 +23,14 @@ export default function ThankYouPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router]);
+  }, []);
+
+  // Efecto separado para la navegación
+  useEffect(() => {
+    if (countdown === 0) {
+      router.push("/client");
+    }
+  }, [countdown, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
