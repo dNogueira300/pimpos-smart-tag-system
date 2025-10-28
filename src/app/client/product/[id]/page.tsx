@@ -29,7 +29,7 @@ interface ProductPageProps {
 
 export default function ProductPage({ params }: ProductPageProps) {
   const router = useRouter();
-  const { addToCart, cartState, getItemQuantity } = useShopping();
+  const { addToCart, cartState, getItemQuantity, budgetConfigured } = useShopping();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +39,13 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [showIngredients, setShowIngredients] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
+
+  // Redirigir a configuración de presupuesto si es la primera vez
+  useEffect(() => {
+    if (!budgetConfigured) {
+      router.replace(`/client/budget/${params.id}`);
+    }
+  }, [budgetConfigured, params.id, router]);
 
   // Cargar producto
   useEffect(() => {
@@ -59,8 +66,10 @@ export default function ProductPage({ params }: ProductPageProps) {
       }
     };
 
-    fetchProduct();
-  }, [params.id]);
+    if (budgetConfigured) {
+      fetchProduct();
+    }
+  }, [params.id, budgetConfigured]);
 
   const handleAddToCart = () => {
     if (!product) return;

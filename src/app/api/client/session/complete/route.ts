@@ -31,6 +31,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verificar si la sesión ya existe
+    const existingSession = await prisma.shoppingSession.findUnique({
+      where: { sessionId },
+    });
+
+    if (existingSession) {
+      // Si la sesión ya existe, retornarla
+      return NextResponse.json(
+        {
+          message: "Sesión ya completada",
+          session: {
+            ...existingSession,
+            budget: existingSession.budget
+              ? existingSession.budget.toNumber()
+              : null,
+            totalSpent: existingSession.totalSpent.toNumber(),
+          },
+        },
+        { status: 200 }
+      );
+    }
+
     // Crear la sesión de compra
     const shoppingSession = await prisma.shoppingSession.create({
       data: {
