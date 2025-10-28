@@ -4,7 +4,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { DollarSign, Skip, ArrowRight } from "lucide-react";
+import { DollarSign, ArrowRight } from "lucide-react";
 import { useShopping } from "@/contexts/ShoppingContext";
 
 export default function BudgetPage({
@@ -138,7 +138,6 @@ export default function BudgetPage({
                   className="w-full bg-gray-100 text-gray-700 font-semibold py-4 rounded-xl hover:bg-gray-200 transition-all border-2 border-gray-200 flex items-center justify-center gap-2"
                 >
                   Omitir
-                  <Skip className="h-5 w-5" />
                 </button>
               </div>
 
