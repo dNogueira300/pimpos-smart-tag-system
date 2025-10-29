@@ -203,7 +203,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-[#FFFEF7] pb-20">
+    <div className="min-h-screen bg-[#FFFEF7] pb-36">
       {/* Header - coincide con el prototipo */}
       <div className="bg-gradient-to-r from-[#E37836] to-[#B55424] p-4 shadow-lg">
         <div className="max-w-md mx-auto text-center">
@@ -211,46 +211,46 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
+      {/* Sección de imagen con fondo #FFF6DA en todo el ancho */}
+      <div className="bg-[#FFF6DA] py-4">
+        <div className="flex justify-center">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              width={160}
+              height={160}
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-40 h-40 flex items-center justify-center">
+              <div className="text-center">
+                <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-xs">Sin imagen</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Contenido principal */}
       <div className="max-w-md mx-auto p-4 space-y-4">
-        {/* Imagen del producto - centrada como en el prototipo */}
-        <div className="flex justify-center">
-          <div className="w-40 h-40 bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-200">
-            {product.imageUrl ? (
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                width={160}
-                height={160}
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <ShoppingCart className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <p className="text-gray-500 text-xs">Sin imagen</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Información del producto - alineado a la izquierda */}
+        <div className="space-y-3">
+          {/* Nombre del producto - alineado a la izquierda */}
+          <h2 className="text-2xl font-bold text-black text-left">
+            {product.name}
+          </h2>
 
-        {/* Información del producto - layout como el prototipo */}
-        <div className="text-center space-y-3">
-          {/* Nombre del producto */}
-          <h2 className="text-2xl font-bold text-black">{product.name}</h2>
-
-          {/* Categoría */}
-          <p className="text-gray-600 text-sm">
+          {/* Categoría - alineado a la izquierda */}
+          <p className="text-gray-600 text-sm text-left">
             {product.category?.name || "Panadería"}
           </p>
 
-          {/* Precio - caja con borde naranja como en el prototipo */}
-          <div className="border-2 border-[#E37836] rounded-2xl p-4 bg-[#FFFEF7]">
+          {/* Precio - caja con borde naranja y fondo #FFF6DA */}
+          <div className="border-2 border-[#E37836] rounded-2xl p-4 bg-[#FFF6DA]">
             {product.hasPromotion && product.promotionPrice ? (
-              <div className="space-y-1">
+              <div className="space-y-1 text-center">
                 <span className="text-3xl font-bold text-[#E37836]">
                   S/. {Number(product.promotionPrice).toFixed(2)}
                 </span>
@@ -266,9 +266,11 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </div>
               </div>
             ) : (
-              <span className="text-3xl font-bold text-[#E37836]">
-                S/. {Number(product.price).toFixed(2)}
-              </span>
+              <div className="text-center">
+                <span className="text-3xl font-bold text-[#E37836]">
+                  S/. {Number(product.price).toFixed(2)}
+                </span>
+              </div>
             )}
           </div>
 
@@ -301,13 +303,15 @@ export default function ProductPage({ params }: ProductPageProps) {
               {warnings.map((warning, index) => (
                 <div
                   key={index}
-                  className="relative bg-black text-white text-xs font-bold px-4 py-3 flex items-center justify-center min-w-[80px] min-h-[80px]"
+                  className="relative bg-black text-white text-[10px] font-bold flex items-center justify-center w-20 h-20"
                   style={{
                     clipPath:
                       "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
                   }}
                 >
-                  <span className="text-center leading-tight">{warning}</span>
+                  <span className="text-center leading-tight px-1 break-words">
+                    {warning}
+                  </span>
                 </div>
               ))}
             </div>
