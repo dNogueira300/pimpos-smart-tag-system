@@ -8,9 +8,9 @@ import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
