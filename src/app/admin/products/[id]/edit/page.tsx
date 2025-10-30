@@ -1,7 +1,7 @@
 // src/app/admin/products/[id]/edit/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,12 +15,13 @@ import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +33,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${params.id}`);
+        const response = await fetch(`/api/admin/products/${id}`);
         if (!response.ok) {
           throw new Error("Producto no encontrado");
         }
@@ -48,7 +49,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [id]);
 
   // Convertir producto a datos del formulario
   const productToFormData = (product: Product): ProductFormData => {
@@ -125,7 +126,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         }
       });
 
-      const response = await fetch(`/api/admin/products/${params.id}`, {
+      const response = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
         body: formData,
       });
