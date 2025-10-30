@@ -784,7 +784,7 @@ export default function ProductsListPage() {
 }
 
 // Botón flotante 'Nuevo Producto' (aparece en la página de lista de productos)
-export function FloatingNewProductButton() {
+function FloatingNewProductButton() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
