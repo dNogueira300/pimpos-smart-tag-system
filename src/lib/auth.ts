@@ -1,3 +1,4 @@
+// lib/auth.ts - CONFIGURACIÓN CORREGIDA PARA PRODUCCIÓN
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -37,18 +38,23 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Registrar login en audit log
-          await prisma.auditLog.create({
-            data: {
-              userId: user.id,
-              action: "LOGIN",
-              entity: "USER",
-              newData: {
-                username: user.username,
-                loginTime: new Date().toISOString(),
+          // Registrar login en audit log (con try/catch para no fallar login)
+          try {
+            await prisma.auditLog.create({
+              data: {
+                userId: user.id,
+                action: "LOGIN",
+                entity: "USER",
+                newData: {
+                  username: user.username,
+                  loginTime: new Date().toISOString(),
+                },
               },
-            },
-          });
+            });
+          } catch (auditError) {
+            console.warn("Error registrando audit log:", auditError);
+            // No fallar el login por error de audit log
+          }
 
           return {
             id: user.id,
@@ -64,10 +70,18 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
+  // ⚠️ CONFIGURACIONES CRÍTICAS PARA PRODUCCIÓN
+  pages: {
+    signIn: "/admin/login",
+    error: "/admin/login",
+  },
+
   session: {
     strategy: "jwt",
     maxAge: 30 * 60, // 30 minutos
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -85,22 +99,57 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async signIn({ user }) {
-      // Verificar que el usuario esté activo
       if (user?.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-        });
-        return dbUser?.isActive ?? false;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+          });
+          return dbUser?.isActive ?? false;
+        } catch (error) {
+          console.error("Error verificando usuario:", error);
+          return false;
+        }
       }
       return false;
     },
+    // ⚠️ CALLBACK CRÍTICO PARA REDIRECTS EN PRODUCCIÓN
+    async redirect({ url, baseUrl }) {
+      // Permitir redirects relativos
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Permitir redirects al mismo origen
+      else if (new URL(url).origin === baseUrl) return url;
+      // Por defecto, redirigir al panel admin
+      return `${baseUrl}/admin`;
+    },
   },
-  pages: {
-    signIn: "/admin/login",
+
+  // ⚠️ CONFIGURACIÓN DE COOKIES PARA HTTPS
+  cookies: {
+    sessionToken: {
+      name: `${
+        process.env.NODE_ENV === "production" ? "__Secure-" : ""
+      }next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        // Solo configurar domain en producción
+        ...(process.env.NODE_ENV === "production" && {
+          domain: ".vercel.app",
+        }),
+      },
+    },
   },
+
+  // Secret explícito
   secret: process.env.NEXTAUTH_SECRET,
+
+  // Debug solo en desarrollo
+  debug: process.env.NODE_ENV === "development",
 };
 
+// Declaraciones de tipos
 declare module "next-auth" {
   interface User {
     username: string;
