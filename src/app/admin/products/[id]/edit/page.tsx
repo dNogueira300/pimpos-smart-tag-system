@@ -14,10 +14,11 @@ import {
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
 
+// ⚠️ CORREGIDO: Interface actualizada para Next.js 15
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
@@ -27,12 +28,31 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
 
-  // Cargar producto
+  // ⚠️ CORREGIDO: Resolver params asíncrono
   useEffect(() => {
+    const resolveParams = async () => {
+      try {
+        const resolvedParams = await params;
+        setProductId(resolvedParams.id);
+      } catch (err) {
+        console.error("Error resolving params:", err);
+        setError("Error al cargar la página");
+        setIsLoading(false);
+      }
+    };
+
+    resolveParams();
+  }, [params]);
+
+  // Cargar producto cuando tengamos el ID
+  useEffect(() => {
+    if (!productId) return;
+
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${params.id}`);
+        const response = await fetch(`/api/admin/products/${productId}`);
         if (!response.ok) {
           throw new Error("Producto no encontrado");
         }
@@ -48,7 +68,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [productId]);
 
   // Convertir producto a datos del formulario
   const productToFormData = (product: Product): ProductFormData => {
@@ -108,6 +128,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   };
 
   const handleSubmit = async (data: ProductFormData) => {
+    if (!productId) return;
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -116,7 +138,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       Object.entries(data).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
           if (key === "imageFile" && value instanceof File) {
-            formData.append(key, value);
+            formData.append("image", value); // ⚠️ CORREGIDO: cambiar nombre a 'image'
           } else if (typeof value === "boolean") {
             formData.append(key, value.toString());
           } else {
@@ -125,7 +147,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         }
       });
 
-      const response = await fetch(`/api/admin/products/${params.id}`, {
+      const response = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
         body: formData,
       });
@@ -140,7 +162,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
       // Redirigir después de 2 segundos
       setTimeout(() => {
-        router.push("/admin/products/list");
+        router.push("/admin/products");
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar producto:", error);
@@ -177,7 +199,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           <h2 className="text-2xl font-bold text-red-900 mb-2">Error</h2>
           <p className="text-red-700 mb-6">{error}</p>
           <Link
-            href="/admin/products/list"
+            href="/admin/products"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#B55424] to-[#E37836] text-white font-semibold rounded-xl hover:from-[#8B5A3C] hover:to-[#B55424] transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -221,7 +243,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link
-              href="/admin/products/list"
+              href="/admin/products"
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all"
             >
               <ArrowLeft className="h-4 w-4" />
