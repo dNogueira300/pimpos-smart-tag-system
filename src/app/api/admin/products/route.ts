@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { v4 as uuidv4 } from "uuid";
+import { uploadImage, validateImageFile } from "@/lib/upload";
 
 export async function POST(request: NextRequest) {
   try {
@@ -140,25 +138,20 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get("imageFile") as File;
 
     if (imageFile && imageFile.size > 0) {
+      // Validar imagen
+      const validation = validateImageFile(imageFile);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      // Subir imagen (maneja automáticamente desarrollo y producción)
       try {
-        // Crear directorio si no existe
-        const uploadDir = join(process.cwd(), "public", "uploads", "products");
-        await mkdir(uploadDir, { recursive: true });
-
-        // Generar nombre único para el archivo
-        const fileExtension = imageFile.name.split(".").pop();
-        const fileName = `${uuidv4()}.${fileExtension}`;
-        const filePath = join(uploadDir, fileName);
-
-        // Guardar archivo
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        await writeFile(filePath, buffer);
-
-        // Establecer URL relativa
-        imageUrl = `/uploads/products/${fileName}`;
+        imageUrl = await uploadImage(imageFile, "products");
       } catch (error) {
-        console.error("Error al guardar imagen:", error);
+        console.error("Error al subir imagen:", error);
         return NextResponse.json(
           { error: "Error al procesar la imagen" },
           { status: 500 }
@@ -322,7 +315,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Convertir Decimals a números para serialización JSON
-    const products = productsRaw.map((product) => ({
+    const products = productsRaw.map((product: any) => ({
       ...product,
       price: product.price.toNumber(),
       promotionPrice: product.promotionPrice
