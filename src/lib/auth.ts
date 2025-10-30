@@ -1,3 +1,4 @@
+// lib/auth.ts - CONFIGURACIÓN CORREGIDA PARA PRODUCCIÓN
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -37,18 +38,23 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Registrar login en audit log
-          await prisma.auditLog.create({
-            data: {
-              userId: user.id,
-              action: "LOGIN",
-              entity: "USER",
-              newData: {
-                username: user.username,
-                loginTime: new Date().toISOString(),
+          // Registrar login en audit log (con try/catch para no fallar login)
+          try {
+            await prisma.auditLog.create({
+              data: {
+                userId: user.id,
+                action: "LOGIN",
+                entity: "USER",
+                newData: {
+                  username: user.username,
+                  loginTime: new Date().toISOString(),
+                },
               },
-            },
-          });
+            });
+          } catch (auditError) {
+            console.warn("Error registrando audit log:", auditError);
+            // No fallar el login por error de audit log
+          }
 
           return {
             id: user.id,
@@ -64,10 +70,17 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
+  pages: {
+    signIn: "/admin/login",
+    error: "/admin/login",
+  },
+
   session: {
     strategy: "jwt",
     maxAge: 30 * 60, // 30 minutos
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -85,22 +98,95 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async signIn({ user }) {
-      // Verificar que el usuario esté activo
       if (user?.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-        });
-        return dbUser?.isActive ?? false;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+          });
+          return dbUser?.isActive ?? false;
+        } catch (error) {
+          console.error("Error verificando usuario:", error);
+          return false;
+        }
       }
       return false;
     },
+    // ✅ CALLBACK SIMPLIFICADO PARA REDIRECTS
+    async redirect({ url, baseUrl }) {
+      console.log("Redirect callback:", { url, baseUrl }); // Debug
+
+      // Si es una URL relativa, combinar con baseUrl
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      // Si es la misma origin, permitir
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+        if (urlObj.origin === baseUrlObj.origin) {
+          return url;
+        }
+      } catch (e) {
+        console.error("Error parsing URLs:", e);
+      }
+
+      // Por defecto, ir al admin
+      return `${baseUrl}/admin`;
+    },
   },
-  pages: {
-    signIn: "/admin/login",
+
+  // ✅ CONFIGURACIÓN DE COOKIES SIMPLIFICADA
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.callback-url"
+          : "next-auth.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Host-next-auth.csrf-token"
+          : "next-auth.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
+
+  // ✅ USAR VARIABLE DE ENTORNO
   secret: process.env.NEXTAUTH_SECRET,
+
+  // ✅ CONFIGURACIÓN PARA COOKIES SEGUROS EN PRODUCCIÓN
+  useSecureCookies: process.env.NODE_ENV === "production",
+
+  // Debug solo en desarrollo
+  debug: process.env.NODE_ENV === "development",
 };
 
+// Declaraciones de tipos
 declare module "next-auth" {
   interface User {
     username: string;

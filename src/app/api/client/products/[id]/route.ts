@@ -7,9 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const product = await prisma.product.findUnique({
       where: {
-        id: params.id,
+        id,
         isActive: true, // Solo productos activos
       },
       include: {
@@ -26,7 +28,7 @@ export async function GET(
 
     // Incrementar contador de vistas
     await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         viewCount: {
           increment: 1,

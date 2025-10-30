@@ -1,4 +1,4 @@
-// src/app/admin/products/page.tsx
+// src/app/admin/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,8 +32,6 @@ export default function ProductsDashboard() {
     totalCategories: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-
-  // Se eliminó la redirección automática para mantener al usuario en el dashboard
 
   useEffect(() => {
     // Cargar estadísticas reales desde la API

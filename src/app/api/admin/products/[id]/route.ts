@@ -19,8 +19,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         category: true,
         createdBy: {
@@ -84,9 +86,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     // Verificar que el producto existe
     const existingProduct = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingProduct) {
@@ -260,7 +264,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Actualizar el producto en la base de datos
     const updatedProduct = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...productData,
         imageUrl,
@@ -282,7 +286,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (priceChanged) {
       await prisma.priceHistory.create({
         data: {
-          productId: params.id,
+          productId: id,
           oldPrice: existingProduct.price,
           newPrice: productData.price,
           changedBy: user.id,
@@ -295,7 +299,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     await prisma.auditLog.create({
       data: {
         userId: user.id,
-        productId: params.id,
+        productId: id,
         action: "UPDATE",
         entity: "PRODUCT",
         oldData: existingProduct,
