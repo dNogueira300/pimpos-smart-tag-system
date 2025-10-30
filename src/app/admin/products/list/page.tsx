@@ -538,6 +538,40 @@ export default function ProductsListPage() {
     </div>
   );
 
+  // Botón flotante 'Nuevo Producto' - Componente interno
+  const FloatingNewProductButton = () => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+      <div className="fixed bottom-10 right-16 z-60">
+        <Link
+          href="/admin/products/new"
+          className="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 overflow-hidden"
+          aria-label="Nuevo Producto"
+          onMouseEnter={() => setIsExpanded(true)}
+          onMouseLeave={() => setIsExpanded(false)}
+          onClick={() => setIsExpanded(true)}
+        >
+          {/* Parte del icono - siempre visible */}
+          <div className="p-4">
+            <Plus className="h-5 w-5" />
+          </div>
+
+          {/* Parte del texto - se expande/contrae */}
+          <div
+            className={`transition-all duration-300 ${
+              isExpanded
+                ? "max-w-32 opacity-100 pr-6"
+                : "max-w-0 opacity-0 pr-0"
+            }`}
+          >
+            Nuevo Producto
+          </div>
+        </Link>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -825,37 +859,5 @@ export default function ProductsListPage() {
 
       <FloatingNewProductButton />
     </>
-  );
-}
-
-// Botón flotante 'Nuevo Producto' (aparece en la página de lista de productos)
-export function FloatingNewProductButton() {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  return (
-    <div className="fixed bottom-10 right-16 z-60">
-      <Link
-        href="/admin/products/new"
-        className="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 overflow-hidden"
-        aria-label="Nuevo Producto"
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-        onClick={() => setIsExpanded(true)}
-      >
-        {/* Parte del icono - siempre visible */}
-        <div className="p-4">
-          <Plus className="h-5 w-5" />
-        </div>
-
-        {/* Parte del texto - se expande/contrae */}
-        <div
-          className={`transition-all duration-300 ${
-            isExpanded ? "max-w-32 opacity-100 pr-6" : "max-w-0 opacity-0 pr-0"
-          }`}
-        >
-          Nuevo Producto
-        </div>
-      </Link>
-    </div>
   );
 }
