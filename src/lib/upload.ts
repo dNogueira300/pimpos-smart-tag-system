@@ -1,5 +1,4 @@
 // src/lib/upload.ts
-import { put, del } from "@vercel/blob";
 import { writeFile, unlink, mkdir } from "fs/promises";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -24,7 +23,9 @@ export async function uploadImage(
   const buffer = Buffer.from(bytes);
 
   if (isProduction()) {
-    // Producción: Vercel Blob
+    // Producción: Vercel Blob (dynamic import)
+    const { put } = await import("@vercel/blob");
+
     const fileExtension = imageFile.name.split(".").pop();
     const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
 
@@ -58,9 +59,10 @@ export async function deleteImage(imageUrl: string): Promise<void> {
   if (!imageUrl) return;
 
   if (isProduction()) {
-    // Producción: Vercel Blob
+    // Producción: Vercel Blob (dynamic import)
     if (imageUrl.includes("vercel-storage")) {
       try {
+        const { del } = await import("@vercel/blob");
         await del(imageUrl);
       } catch (error) {
         console.log("No se pudo eliminar la imagen de Vercel Blob:", error);
