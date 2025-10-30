@@ -4,12 +4,12 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } } // <-- TIPO CORREGIDO
 ) {
   try {
     const product = await prisma.product.findUnique({
       where: {
-        id: params.id,
+        id: params.id, // <-- Ahora esto es válido
         isActive: true, // Solo productos activos
       },
       include: {
@@ -26,7 +26,7 @@ export async function GET(
 
     // Incrementar contador de vistas
     await prisma.product.update({
-      where: { id: params.id },
+      where: { id: params.id }, // <-- Y esto también
       data: {
         viewCount: {
           increment: 1,
