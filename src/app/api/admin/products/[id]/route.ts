@@ -3,9 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { writeFile, mkdir, unlink } from "fs/promises";
-import { join } from "path";
-import { v4 as uuidv4 } from "uuid";
+import { uploadImage, deleteImage, validateImageFile } from "@/lib/upload";
 
 interface RouteParams {
   params: Promise<{
@@ -63,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       promotionPrice: product.promotionPrice
         ? product.promotionPrice.toNumber()
         : null,
-      priceHistory: product.priceHistory.map((history) => ({
+      priceHistory: product.priceHistory.map((history: any) => ({
         ...history,
         oldPrice: history.oldPrice.toNumber(),
         newPrice: history.newPrice.toNumber(),
@@ -206,42 +204,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const imageFile = formData.get("imageFile") as File;
 
     if (imageFile && imageFile.size > 0) {
+      // Validar imagen
+      const validation = validateImageFile(imageFile);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        );
+      }
+
       try {
         // Eliminar imagen anterior si existe
-        if (
-          existingProduct.imageUrl &&
-          existingProduct.imageUrl.startsWith("/uploads/")
-        ) {
-          const oldImagePath = join(
-            process.cwd(),
-            "public",
-            existingProduct.imageUrl
-          );
-          try {
-            await unlink(oldImagePath);
-          } catch (error) {
-            console.log("No se pudo eliminar la imagen anterior:", error);
-          }
+        if (existingProduct.imageUrl) {
+          await deleteImage(existingProduct.imageUrl);
         }
 
-        // Crear directorio si no existe
-        const uploadDir = join(process.cwd(), "public", "uploads", "products");
-        await mkdir(uploadDir, { recursive: true });
-
-        // Generar nombre único para el archivo
-        const fileExtension = imageFile.name.split(".").pop();
-        const fileName = `${uuidv4()}.${fileExtension}`;
-        const filePath = join(uploadDir, fileName);
-
-        // Guardar archivo
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        await writeFile(filePath, buffer);
-
-        // Establecer URL relativa
-        imageUrl = `/uploads/products/${fileName}`;
+        // Subir nueva imagen (maneja automáticamente desarrollo y producción)
+        imageUrl = await uploadImage(imageFile, "products");
       } catch (error) {
-        console.error("Error al guardar imagen:", error);
+        console.error("Error al procesar imagen:", error);
         return NextResponse.json(
           { error: "Error al procesar la imagen" },
           { status: 500 }
@@ -375,17 +356,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Eliminar imagen del servidor si existe
-    if (
-      existingProduct.imageUrl &&
-      existingProduct.imageUrl.startsWith("/uploads/")
-    ) {
-      const imagePath = join(process.cwd(), "public", existingProduct.imageUrl);
-      try {
-        await unlink(imagePath);
-      } catch (error) {
-        console.log("No se pudo eliminar la imagen:", error);
-      }
+    // Eliminar imagen si existe
+    if (existingProduct.imageUrl) {
+      await deleteImage(existingProduct.imageUrl);
     }
 
     // Eliminar el producto (esto también eliminará historial de precios y logs de auditoría por cascada)
