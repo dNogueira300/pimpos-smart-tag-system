@@ -71,7 +71,6 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  // ⚠️ CONFIGURACIONES CRÍTICAS PARA PRODUCCIÓN
   pages: {
     signIn: "/admin/login",
     error: "/admin/login",
@@ -112,38 +111,76 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
-    // ⚠️ CALLBACK CRÍTICO PARA REDIRECTS EN PRODUCCIÓN
+    // ✅ CALLBACK SIMPLIFICADO PARA REDIRECTS
     async redirect({ url, baseUrl }) {
-      // Permitir redirects relativos
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Permitir redirects al mismo origen
-      else if (new URL(url).origin === baseUrl) return url;
-      // Por defecto, redirigir al panel admin
+      console.log("Redirect callback:", { url, baseUrl }); // Debug
+
+      // Si es una URL relativa, combinar con baseUrl
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      // Si es la misma origin, permitir
+      try {
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+        if (urlObj.origin === baseUrlObj.origin) {
+          return url;
+        }
+      } catch (e) {
+        console.error("Error parsing URLs:", e);
+      }
+
+      // Por defecto, ir al admin
       return `${baseUrl}/admin`;
     },
   },
 
-  // ⚠️ CONFIGURACIÓN DE COOKIES PARA HTTPS
+  // ✅ CONFIGURACIÓN DE COOKIES SIMPLIFICADA
   cookies: {
     sessionToken: {
-      name: `${
-        process.env.NODE_ENV === "production" ? "__Secure-" : ""
-      }next-auth.session-token`,
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        // Solo configurar domain en producción
-        ...(process.env.NODE_ENV === "production" && {
-          domain: ".vercel.app",
-        }),
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.callback-url"
+          : "next-auth.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Host-next-auth.csrf-token"
+          : "next-auth.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
   },
 
-  // Secret explícito
+  // ✅ USAR VARIABLE DE ENTORNO
   secret: process.env.NEXTAUTH_SECRET,
+
+  // ✅ CONFIGURACIÓN PARA COOKIES SEGUROS EN PRODUCCIÓN
+  useSecureCookies: process.env.NODE_ENV === "production",
 
   // Debug solo en desarrollo
   debug: process.env.NODE_ENV === "development",
