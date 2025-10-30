@@ -205,7 +205,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const newImageUrl = formData.get("imageUrl") as string;
     const imageFile = formData.get("imageFile") as File;
 
+    // Detectar si estamos en producción (Vercel)
+    const isProduction = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
     if (imageFile && imageFile.size > 0) {
+      if (isProduction) {
+        // En producción, no intentamos guardar archivos localmente
+        return NextResponse.json(
+          {
+            error: "En producción, use una URL externa para la imagen. El sistema de archivos es de solo lectura.",
+            suggestion: "Sube la imagen a un servicio como Cloudinary, Imgur o similares, y usa la URL en el campo 'URL de Imagen'"
+          },
+          { status: 400 }
+        );
+      }
+
+      // Solo en desarrollo: guardar archivo localmente
       try {
         // Eliminar imagen anterior si existe
         if (
