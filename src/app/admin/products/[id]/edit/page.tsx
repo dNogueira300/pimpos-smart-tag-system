@@ -14,7 +14,7 @@ import {
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
 
-// ⚠️ CORREGIDO: Interface actualizada para Next.js 15
+// ✅ CORREGIDO: Interface actualizada para Next.js 15
 interface EditProductPageProps {
   params: Promise<{
     id: string;
@@ -30,7 +30,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
 
-  // ⚠️ CORREGIDO: Resolver params asíncrono
+  // ✅ CORREGIDO: Resolver params asíncrono para Next.js 15
   useEffect(() => {
     const resolveParams = async () => {
       try {
@@ -134,11 +134,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     try {
       const formData = new FormData();
 
-      // Agregar todos los campos del producto
+      // ✅ CORREGIDO: Agregar todos los campos del producto manteniendo nombres originales
       Object.entries(data).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
           if (key === "imageFile" && value instanceof File) {
-            formData.append("image", value); // ⚠️ CORREGIDO: cambiar nombre a 'image'
+            formData.append("imageFile", value); // ✅ USAR "imageFile" como originalmente
           } else if (typeof value === "boolean") {
             formData.append(key, value.toString());
           } else {
@@ -162,7 +162,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
       // Redirigir después de 2 segundos
       setTimeout(() => {
-        router.push("/admin/products");
+        router.push("/admin/products/list");
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar producto:", error);
@@ -199,7 +199,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           <h2 className="text-2xl font-bold text-red-900 mb-2">Error</h2>
           <p className="text-red-700 mb-6">{error}</p>
           <Link
-            href="/admin/products"
+            href="/admin/products/list"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#B55424] to-[#E37836] text-white font-semibold rounded-xl hover:from-[#8B5A3C] hover:to-[#B55424] transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -243,7 +243,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link
-              href="/admin/products"
+              href="/admin/products/list"
               className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all"
             >
               <ArrowLeft className="h-4 w-4" />
