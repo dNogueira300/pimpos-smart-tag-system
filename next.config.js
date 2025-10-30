@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ⚠️ SOLUCIÓN RÁPIDA: Desactivar optimización de imágenes completamente
   images: {
     unoptimized: true,
     domains: ["localhost", "pimpos-system.vercel.app"],
@@ -12,23 +11,24 @@ const nextConfig = {
     ],
   },
 
-  // CAMBIO 1:
-  // "serverComponentsExternalPackages" se movió fuera de "experimental"
-  // y ahora se llama "serverExternalPackages".
+  // PASO 1: Para 'next dev --turbopack'
+  // Esto elimina la advertencia en desarrollo.
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
-
-  // El bloque "experimental: { ... }" se eliminó porque ya estaba vacío.
 
   // Configuración mínima para Vercel
   ...(process.env.NODE_ENV === "production" && {
     output: "standalone",
   }),
 
-  // CAMBIO 2:
-  // Se eliminó todo el bloque "webpack: (config, { isServer }) => { ... }"
-  // 1. Porque estás usando --turbopack (que ignora esta configuración).
-  // 2. Porque "serverExternalPackages" (arriba) ya hace lo que
-  //    intentabas hacer en el bloque de webpack.
+  // PASO 2: ¡RESTAURAR ESTO!
+  // Para 'next build' (producción en Vercel)
+  // Esto es VITAL para que Prisma y bcrypt funcionen en el entorno serverless.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push("@prisma/client", "bcryptjs");
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
