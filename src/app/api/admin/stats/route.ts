@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+// --- CONFLICTO RESUELTO ---
+// (Se eligió la versión de 'main' por ser más simple y no requerir la importación de NextRequest)
 export async function GET() {
   try {
     // Verificar autenticación

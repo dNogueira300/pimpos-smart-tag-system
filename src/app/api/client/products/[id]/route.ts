@@ -4,9 +4,12 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
+  // 1. RESTAURAR EL TIPO PROMISE (esto es lo que Vercel espera)
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // --- CONFLICTO 1 RESUELTO ---
+    // (Se eligió la versión de 'main' por ser más limpia y usar destructuring)
     const { id } = await params;
 
     const product = await prisma.product.findUnique({
@@ -28,6 +31,8 @@ export async function GET(
 
     // Incrementar contador de vistas
     await prisma.product.update({
+      // --- CONFLICTO 2 RESUELTO ---
+      // (Se eligió la versión de 'main' para que coincida con la variable 'id')
       where: { id },
       data: {
         viewCount: {

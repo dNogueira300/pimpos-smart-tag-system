@@ -19,6 +19,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    // --- CONFLICTO 1 RESUELTO ---
+    // (Se eligió la versión de 'main' por ser más limpia: `where: { id }`)
     const { id } = await params;
 
     const product = await prisma.product.findUnique({
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       promotionPrice: product.promotionPrice
         ? product.promotionPrice.toNumber()
         : null,
-      priceHistory: product.priceHistory.map((history: any) => ({
+      priceHistory: product.priceHistory.map((history) => ({
         ...history,
         oldPrice: history.oldPrice.toNumber(),
         newPrice: history.newPrice.toNumber(),
@@ -86,10 +88,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    // --- CONFLICTO 2 RESUELTO ---
+    // (Se eliminó el comentario innecesario de la rama 'claude')
     const { id } = await params;
 
     // Verificar que el producto existe
     const existingProduct = await prisma.product.findUnique({
+      // --- CONFLICTO 3 RESUELTO ---
+      // (Se eligió la versión de 'main': `where: { id }`)
       where: { id },
     });
 
@@ -207,10 +213,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       // Validar imagen
       const validation = validateImageFile(imageFile);
       if (!validation.valid) {
-        return NextResponse.json(
-          { error: validation.error },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: validation.error }, { status: 400 });
       }
 
       try {
@@ -264,6 +267,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Actualizar el producto en la base de datos
     const updatedProduct = await prisma.product.update({
+      // --- CONFLICTO 4 RESUELTO ---
+      // (Se eligió la versión de 'main': `where: { id }`)
       where: { id },
       data: {
         ...productData,
@@ -286,6 +291,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (priceChanged) {
       await prisma.priceHistory.create({
         data: {
+          // --- CONFLICTO 5 RESUELTO ---
+          // (Ambas versiones eran idénticas, se eliminaron los marcadores)
           productId: id,
           oldPrice: existingProduct.price,
           newPrice: productData.price,
@@ -299,6 +306,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     await prisma.auditLog.create({
       data: {
         userId: user.id,
+        // --- CONFLICTO 6 RESUELTO ---
+        // (Ambas versiones eran idénticas, se eliminaron los marcadores)
         productId: id,
         action: "UPDATE",
         entity: "PRODUCT",
@@ -330,7 +339,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = await params;
+    const { id } = await params; // <-- Esta ya estaba correcta
 
     // Verificar que el producto existe
     const existingProduct = await prisma.product.findUnique({
