@@ -315,7 +315,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Convertir Decimals a números para serialización JSON
-    const products = productsRaw.map((product: any) => ({
+    const products = productsRaw.map((product) => ({
       ...product,
       price: product.price.toNumber(),
       promotionPrice: product.promotionPrice

@@ -59,7 +59,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       promotionPrice: product.promotionPrice
         ? product.promotionPrice.toNumber()
         : null,
-      priceHistory: product.priceHistory.map((history: any) => ({
+      priceHistory: product.priceHistory.map((history) => ({
         ...history,
         oldPrice: history.oldPrice.toNumber(),
         newPrice: history.newPrice.toNumber(),
