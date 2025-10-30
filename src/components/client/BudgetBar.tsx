@@ -18,8 +18,8 @@ export default function BudgetBar() {
     switch (status) {
       case "healthy":
         return {
-          bg: "bg-green-500",
-          text: "text-green-900",
+          bg: "bg-green-600",
+          text: "text-green-600",
           barBg: "bg-green-100",
           message: "Te quedan presupuesto",
         };
@@ -52,43 +52,45 @@ export default function BudgetBar() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-gray-200 shadow-2xl z-40">
       <div className="max-w-md mx-auto p-4">
-        {/* Barra de progreso */}
-        <div className={`${config.barBg} h-3 rounded-full overflow-hidden mb-2`}>
-          <div
-            className={`${config.bg} h-full transition-all duration-500 ease-out`}
-            style={{ width: `${percentage}%` }}
-          ></div>
-        </div>
-
-        {/* Información */}
-        <div className="flex justify-between items-center">
+        {/* Información superior: total acumulado (izq) y disponible (der) */}
+        <div className="flex justify-between items-center mb-3">
           <div>
-            <p className="text-sm font-semibold text-gray-700">
-              S/. {cartState.totalSpent.toFixed(2)} de S/.{" "}
-              {cartState.budget.toFixed(2)}
-            </p>
-            <p className={`text-xs font-medium ${config.text}`}>
-              {config.message}
+            <p className="text-xs font-medium text-black">Total acumulado</p>
+            <p className={`text-lg font-bold ${config.text}`}>
+              S/. {cartState.totalSpent.toFixed(2)}
             </p>
           </div>
-          {cartState.budgetRemaining !== null && (
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-900">
-                {cartState.budgetExceeded ? "Exceso:" : "Disponible:"}
-              </p>
-              <p
-                className={`text-lg font-bold ${
-                  cartState.budgetExceeded ? "text-red-600" : "text-green-600"
-                }`}
-              >
-                S/.{" "}
-                {cartState.budgetExceeded
-                  ? (cartState.totalSpent - cartState.budget).toFixed(2)
-                  : cartState.budgetRemaining.toFixed(2)}
-              </p>
-            </div>
-          )}
+
+          <div className="text-right">
+            <p className="text-xs font-medium text-black">
+              {cartState.budgetExceeded ? "Exceso" : "Disponible"}
+            </p>
+            <p className={`text-lg font-bold text-black`}>
+              S/.{" "}
+              {(cartState.budgetExceeded
+                ? cartState.totalSpent - (cartState.budget || 0)
+                : cartState.budgetRemaining !== null
+                ? cartState.budgetRemaining
+                : cartState.budget
+              ).toFixed(2)}
+            </p>
+          </div>
         </div>
+
+        {/* Barra de progreso */}
+        <div className="mb-2">
+          <div className={`${config.barBg} h-3 rounded-full overflow-hidden`}>
+            <div
+              className={`${config.bg} h-full transition-all duration-500 ease-out`}
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Porcentaje visible centrado debajo de la barra */}
+        <p className={`text-sm font-medium text-center ${config.text}`}>
+          {Math.round(percentage)}% del presupuesto
+        </p>
       </div>
     </div>
   );

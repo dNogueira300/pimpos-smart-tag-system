@@ -10,6 +10,7 @@ interface ShoppingContextType {
   // Estado
   cartState: CartState;
   sessionId: string;
+  budgetConfigured: boolean;
 
   // Acciones del carrito
   addToCart: (product: Product, quantity: number) => void;
@@ -19,6 +20,7 @@ interface ShoppingContextType {
 
   // Acciones del presupuesto
   setBudget: (budget: number | null) => void;
+  markBudgetAsConfigured: () => void;
 
   // Utilidades
   getBudgetStatus: () => BudgetStatus;
@@ -46,6 +48,21 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return uuidv4();
+  });
+
+  const [budgetConfigured, setBudgetConfigured] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return parsed.budgetConfigured || false;
+        } catch {
+          return false;
+        }
+      }
+    }
+    return false;
   });
 
   const [cartState, setCartState] = useState<CartState>(() => {
@@ -83,6 +100,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       const toStore = {
         sessionId,
+        budgetConfigured,
         items: cartState.items,
         budget: cartState.budget,
         totalSpent: cartState.totalSpent,
@@ -91,7 +109,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
     }
-  }, [cartState, sessionId]);
+  }, [cartState, sessionId, budgetConfigured]);
 
   // Agregar producto al carrito
   const addToCart = (product: Product, quantity: number) => {
@@ -230,6 +248,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
 
   // Establecer presupuesto
   const setBudget = (budget: number | null) => {
+    setBudgetConfigured(true);
     setCartState((prev) => ({
       ...prev,
       budget,
@@ -240,6 +259,11 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
           ? (prev.totalSpent / budget) * 100
           : null,
     }));
+  };
+
+  // Marcar que ya se configuró el presupuesto (o se decidió omitir)
+  const markBudgetAsConfigured = () => {
+    setBudgetConfigured(true);
   };
 
   // Obtener estado del presupuesto
@@ -300,11 +324,13 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
   const value: ShoppingContextType = {
     cartState,
     sessionId,
+    budgetConfigured,
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
     setBudget,
+    markBudgetAsConfigured,
     getBudgetStatus,
     getItemQuantity,
     completeSession,

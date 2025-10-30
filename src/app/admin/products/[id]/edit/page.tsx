@@ -14,10 +14,11 @@ import {
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
 
+// ✅ CORREGIDO: Interface actualizada para Next.js 15
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
@@ -27,12 +28,31 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
 
-  // Cargar producto
+  // ✅ CORREGIDO: Resolver params asíncrono para Next.js 15
   useEffect(() => {
+    const resolveParams = async () => {
+      try {
+        const resolvedParams = await params;
+        setProductId(resolvedParams.id);
+      } catch (err) {
+        console.error("Error resolving params:", err);
+        setError("Error al cargar la página");
+        setIsLoading(false);
+      }
+    };
+
+    resolveParams();
+  }, [params]);
+
+  // Cargar producto cuando tengamos el ID
+  useEffect(() => {
+    if (!productId) return;
+
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${params.id}`);
+        const response = await fetch(`/api/admin/products/${productId}`);
         if (!response.ok) {
           throw new Error("Producto no encontrado");
         }
@@ -48,7 +68,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [productId]);
 
   // Convertir producto a datos del formulario
   const productToFormData = (product: Product): ProductFormData => {
@@ -108,15 +128,17 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   };
 
   const handleSubmit = async (data: ProductFormData) => {
+    if (!productId) return;
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
 
-      // Agregar todos los campos del producto
+      // ✅ CORREGIDO: Agregar todos los campos del producto manteniendo nombres originales
       Object.entries(data).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
           if (key === "imageFile" && value instanceof File) {
-            formData.append(key, value);
+            formData.append("imageFile", value); // ✅ USAR "imageFile" como originalmente
           } else if (typeof value === "boolean") {
             formData.append(key, value.toString());
           } else {
@@ -125,7 +147,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         }
       });
 
-      const response = await fetch(`/api/admin/products/${params.id}`, {
+      const response = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
         body: formData,
       });

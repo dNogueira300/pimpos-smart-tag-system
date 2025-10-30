@@ -1,11 +1,12 @@
 // src/app/api/admin/stats/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(_request: NextRequest) {
+// --- CONFLICTO RESUELTO ---
+// (Se eligió la versión de 'main' por ser más simple y no requerir la importación de NextRequest)
+export async function GET() {
   try {
     // Verificar autenticación
     const session = await getServerSession(authOptions);

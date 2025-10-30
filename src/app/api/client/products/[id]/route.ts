@@ -8,13 +8,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 2. AÑADIR AWAIT para resolver la promesa
-    const resolvedParams = await params;
+    // --- CONFLICTO 1 RESUELTO ---
+    // (Se eligió la versión de 'main' por ser más limpia y usar destructuring)
+    const { id } = await params;
 
     const product = await prisma.product.findUnique({
       where: {
-        // 3. USAR LOS PARAMS RESUELTOS
-        id: resolvedParams.id,
+        id,
         isActive: true, // Solo productos activos
       },
       include: {
@@ -31,7 +31,9 @@ export async function GET(
 
     // Incrementar contador de vistas
     await prisma.product.update({
-      where: { id: resolvedParams.id }, // <-- Usar la variable resuelta
+      // --- CONFLICTO 2 RESUELTO ---
+      // (Se eligió la versión de 'main' para que coincida con la variable 'id')
+      where: { id },
       data: {
         viewCount: {
           increment: 1,

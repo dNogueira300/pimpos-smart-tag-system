@@ -20,6 +20,8 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { Product, Category } from "@/types/product";
+import ConfirmModal from "@/components/ConfirmModal";
+import { useToast } from "@/components/ToastContainer";
 
 interface ProductsResponse {
   products: Product[];
@@ -37,6 +39,8 @@ export default function ProductsListPage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  const { showSuccess, showError } = useToast();
+
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -51,6 +55,13 @@ export default function ProductsListPage() {
     total: 0,
     totalPages: 0,
   });
+
+  // Modal de confirmación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Cargar productos
   const fetchProducts = useCallback(async () => {
@@ -108,30 +119,42 @@ export default function ProductsListPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Eliminar producto
-  const handleDeleteProduct = async (
-    productId: string,
-    productName: string
-  ) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar "${productName}"?`)) {
-      return;
-    }
+  // Abrir modal de confirmación para eliminar
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    setProductToDelete({ id: productId, name: productName });
+    setShowDeleteModal(true);
+  };
+
+  // Confirmar eliminación del producto
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/products/${productToDelete.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         await fetchProducts(); // Recargar la lista
-        alert("Producto eliminado exitosamente");
+        showSuccess(
+          "Producto eliminado",
+          `El producto "${productToDelete.name}" se eliminó correctamente`
+        );
       } else {
         const error = await response.json();
-        alert(`Error al eliminar producto: ${error.error}`);
+        showError("Error al eliminar producto", error.error);
       }
     } catch (error) {
       console.error("Error al eliminar producto:", error);
-      alert("Error al eliminar producto");
+      showError(
+        "Error al eliminar producto",
+        "No se pudo conectar con el servidor"
+      );
+    } finally {
+      setProductToDelete(null);
     }
   };
 
@@ -515,6 +538,40 @@ export default function ProductsListPage() {
     </div>
   );
 
+  // Botón flotante 'Nuevo Producto' - Componente interno
+  const FloatingNewProductButton = () => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+      <div className="fixed bottom-10 right-16 z-60">
+        <Link
+          href="/admin/products/new"
+          className="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 overflow-hidden"
+          aria-label="Nuevo Producto"
+          onMouseEnter={() => setIsExpanded(true)}
+          onMouseLeave={() => setIsExpanded(false)}
+          onClick={() => setIsExpanded(true)}
+        >
+          {/* Parte del icono - siempre visible */}
+          <div className="p-4">
+            <Plus className="h-5 w-5" />
+          </div>
+
+          {/* Parte del texto - se expande/contrae */}
+          <div
+            className={`transition-all duration-300 ${
+              isExpanded
+                ? "max-w-32 opacity-100 pr-6"
+                : "max-w-0 opacity-0 pr-0"
+            }`}
+          >
+            Nuevo Producto
+          </div>
+        </Link>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -780,39 +837,27 @@ export default function ProductsListPage() {
           </>
         )}
       </div>
+
+      {/* Modal de confirmación */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setProductToDelete(null);
+        }}
+        onConfirm={confirmDeleteProduct}
+        title="Eliminar producto"
+        message={
+          productToDelete
+            ? `¿Estás seguro de que deseas eliminar el producto "${productToDelete.name}"? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
       <FloatingNewProductButton />
     </>
-  );
-}
-
-// Botón flotante 'Nuevo Producto' (aparece en la página de lista de productos)
-export function FloatingNewProductButton() {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  return (
-    <div className="fixed bottom-10 right-16 z-60">
-      <Link
-        href="/admin/products/new"
-        className="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-full shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-300 overflow-hidden"
-        aria-label="Nuevo Producto"
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-        onClick={() => setIsExpanded(true)}
-      >
-        {/* Parte del icono - siempre visible */}
-        <div className="p-4">
-          <Plus className="h-5 w-5" />
-        </div>
-
-        {/* Parte del texto - se expande/contrae */}
-        <div
-          className={`transition-all duration-300 ${
-            isExpanded ? "max-w-32 opacity-100 pr-6" : "max-w-0 opacity-0 pr-0"
-          }`}
-        >
-          Nuevo Producto
-        </div>
-      </Link>
-    </div>
   );
 }
