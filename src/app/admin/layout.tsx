@@ -174,8 +174,12 @@ export default function AdminLayout({
               <Menu className="h-6 w-6" />
             </button>
 
-            {/* Espacio flexible para empujar el contenido a la derecha */}
-            <div className="flex-1"></div>
+            {/* Título Pimpos System */}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-white hidden sm:block">
+                Pimpos System
+              </h1>
+            </div>
 
             <div className="flex items-center gap-x-6">
               <div className="text-right">
