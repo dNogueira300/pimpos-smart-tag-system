@@ -335,15 +335,20 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        throw new Error("Error al completar la sesión");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || "Error al completar la sesión";
+        console.error("Error del servidor:", errorMessage);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       const generatedTicketNumber = data.ticketNumber;
 
+      console.log("Respuesta completa del servidor:", data);
       console.log("Número de ticket recibido del servidor:", generatedTicketNumber);
 
       if (!generatedTicketNumber) {
+        console.error("La respuesta del servidor no incluye ticketNumber:", data);
         throw new Error("No se recibió el número de ticket del servidor");
       }
 
