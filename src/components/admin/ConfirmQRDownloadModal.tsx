@@ -60,21 +60,18 @@ export default function ConfirmQRDownloadModal({
         <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 mb-6">
           <div className="space-y-2">
             <div className="flex items-start gap-2">
-              <span className="text-purple-600 mt-0.5">✓</span>
               <span className="text-sm text-purple-900">
-                Formato grid (6 QR por página)
+                - Formato grid (6 QR por página)
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-purple-600 mt-0.5">✓</span>
               <span className="text-sm text-purple-900">
-                Incluye enlaces NFC copiables
+                - Incluye enlaces NFC copiables
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-purple-600 mt-0.5">✓</span>
               <span className="text-sm text-purple-900">
-                Tamaño optimizado para impresión
+                - Tamaño optimizado para impresión
               </span>
             </div>
           </div>
@@ -84,7 +81,7 @@ export default function ConfirmQRDownloadModal({
         {productCount > 50 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-6">
             <p className="text-yellow-900 text-xs text-center">
-              ⚠️ La generación puede tardar unos momentos debido a la cantidad
+              Advertencia: La generación puede tardar unos momentos debido a la cantidad
               de productos
             </p>
           </div>

@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("✅ Ticket creado exitosamente en la BD:", {
+    console.log("Ticket creado exitosamente en la BD:", {
       id: ticket.id,
       ticketNumber: ticket.ticketNumber,
       createdAt: ticket.createdAt,

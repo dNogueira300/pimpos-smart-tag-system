@@ -111,7 +111,7 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
-    // ✅ CALLBACK SIMPLIFICADO PARA REDIRECTS
+    // CALLBACK SIMPLIFICADO PARA REDIRECTS
     async redirect({ url, baseUrl }) {
       console.log("Redirect callback:", { url, baseUrl }); // Debug
 
@@ -136,7 +136,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  // ✅ CONFIGURACIÓN DE COOKIES SIMPLIFICADA
+  // CONFIGURACIÓN DE COOKIES SIMPLIFICADA
   cookies: {
     sessionToken: {
       name:
@@ -176,10 +176,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  // ✅ USAR VARIABLE DE ENTORNO
+  // USAR VARIABLE DE ENTORNO
   secret: process.env.NEXTAUTH_SECRET,
 
-  // ✅ CONFIGURACIÓN PARA COOKIES SEGUROS EN PRODUCCIÓN
+  // CONFIGURACIÓN PARA COOKIES SEGUROS EN PRODUCCIÓN
   useSecureCookies: process.env.NODE_ENV === "production",
 
   // Debug solo en desarrollo

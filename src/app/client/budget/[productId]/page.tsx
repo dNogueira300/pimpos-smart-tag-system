@@ -84,16 +84,13 @@ export default function BudgetPage({
                 </p>
                 <ul className="text-xs text-blue-800 space-y-1">
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Recibirás alertas cuando te acerques al límite</span>
+                    <span>- Recibirás alertas cuando te acerques al límite</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Verás claramente cuánto te queda disponible</span>
+                    <span>- Verás claramente cuánto te queda disponible</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-0.5">✓</span>
-                    <span>Te ayudará a comprar de forma consciente</span>
+                    <span>- Te ayudará a comprar de forma consciente</span>
                   </li>
                 </ul>
               </div>
@@ -146,7 +143,7 @@ export default function BudgetPage({
               {/* Nota */}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
                 <p className="text-amber-900 text-xs text-center">
-                  💡 <strong>Tip:</strong> Puedes cambiar tu presupuesto en
+                  <strong>Tip:</strong> Puedes cambiar tu presupuesto en
                   cualquier momento desde el carrito
                 </p>
               </div>

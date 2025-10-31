@@ -14,7 +14,7 @@ import {
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
 
-// ✅ CORREGIDO: Interface actualizada para Next.js 15
+// CORREGIDO: Interface actualizada para Next.js 15
 interface EditProductPageProps {
   params: Promise<{
     id: string;
@@ -30,7 +30,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
 
-  // ✅ CORREGIDO: Resolver params asíncrono para Next.js 15
+  // CORREGIDO: Resolver params asíncrono para Next.js 15
   useEffect(() => {
     const resolveParams = async () => {
       try {
@@ -134,11 +134,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     try {
       const formData = new FormData();
 
-      // ✅ CORREGIDO: Agregar todos los campos del producto manteniendo nombres originales
+      // CORREGIDO: Agregar todos los campos del producto manteniendo nombres originales
       Object.entries(data).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
           if (key === "imageFile" && value instanceof File) {
-            formData.append("imageFile", value); // ✅ USAR "imageFile" como originalmente
+            formData.append("imageFile", value); // USAR "imageFile" como originalmente
           } else if (typeof value === "boolean") {
             formData.append(key, value.toString());
           } else {

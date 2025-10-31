@@ -236,7 +236,7 @@ export default function ThankYouPage() {
             Panadería y Minimarket Pimpos
           </p>
           <p className="text-center text-gray-500 text-xs mt-1">
-            Tu tienda de confianza 🍞❤️
+            Tu tienda de confianza
           </p>
         </div>
       </div>

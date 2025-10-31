@@ -189,7 +189,7 @@ export default function ScanPage() {
               {/* Ayuda */}
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
                 <p className="text-blue-900 text-xs text-center">
-                  💡 <strong>Tip:</strong> Puedes usar códigos de prueba como
+                  <strong>Tip:</strong> Puedes usar códigos de prueba como
                   &quot;PROD-001&quot; para ver un producto de ejemplo
                 </p>
               </div>

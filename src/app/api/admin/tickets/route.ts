@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const search = searchParams.get("search") || "";
 
-    console.log("📋 GET /api/admin/tickets - Parámetros:", { page, limit, search });
+    console.log("GET /api/admin/tickets - Parámetros:", { page, limit, search });
 
     // Calcular offset para la paginación
     const offset = (page - 1) * limit;
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       prisma.ticket.count({ where }),
     ]);
 
-    console.log("📋 Tickets encontrados en BD:", {
+    console.log("Tickets encontrados en BD:", {
       total,
       ticketsEnPagina: tickets.length,
       primerosTickets: tickets.slice(0, 3).map(t => ({
