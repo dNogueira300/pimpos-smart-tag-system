@@ -62,10 +62,15 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingSession) {
-      // Si la sesión ya existe, retornarla
+      // Si la sesión ya existe, buscar el ticket asociado
+      const existingTicket = await prisma.ticket.findUnique({
+        where: { sessionId },
+      });
+
       return NextResponse.json(
         {
           message: "Sesión ya completada",
+          ticketNumber: existingTicket?.ticketNumber || null,
           session: {
             ...existingSession,
             budget: existingSession.budget
@@ -150,8 +155,20 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error al completar sesión:", error);
+
+    // Proporcionar más detalles del error
+    let errorMessage = "Error interno del servidor";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error("Mensaje de error:", errorMessage);
+      console.error("Stack trace:", error.stack);
+    }
+
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      {
+        error: errorMessage,
+        details: error instanceof Error ? error.message : "Error desconocido"
+      },
       { status: 500 }
     );
   }
