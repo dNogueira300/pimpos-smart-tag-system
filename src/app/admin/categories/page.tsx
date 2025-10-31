@@ -1,7 +1,7 @@
 // src/app/admin/categories/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FolderPlus,
   Plus,
@@ -67,7 +67,7 @@ export default function CategoriesManagementPage() {
     useState<CategoryWithCount | null>(null);
 
   // Cargar categorías
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
       const url = `/api/admin/categories${
@@ -84,11 +84,11 @@ export default function CategoriesManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showInactive, showError]);
 
   useEffect(() => {
     fetchCategories();
-  });
+  }, [fetchCategories]);
 
   // Filtrar categorías por búsqueda
   const filteredCategories = categories.filter((category) =>
