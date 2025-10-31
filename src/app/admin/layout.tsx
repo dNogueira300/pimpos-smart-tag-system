@@ -7,15 +7,12 @@ import { useEffect, useState } from "react";
 import {
   Package,
   Plus,
-  Upload,
-  AlertTriangle,
-  Settings,
   LogOut,
   Menu,
-  QrCode,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
+  Receipt,
 } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -60,28 +57,10 @@ const sidebarItems = [
     description: "Agregar producto",
   },
   {
-    title: "Importar Productos",
-    icon: Upload,
-    href: "/admin/products/import",
-    description: "Carga masiva",
-  },
-  {
-    title: "Generar QRs",
-    icon: QrCode,
-    href: "/admin/qr-codes",
-    description: "Descargar códigos QR",
-  },
-  {
-    title: "Productos por Vencer",
-    icon: AlertTriangle,
-    href: "/admin/expiring",
-    description: "Alertas de vencimiento",
-  },
-  {
-    title: "Configuración",
-    icon: Settings,
-    href: "/admin/settings",
-    description: "Configurar sistema",
+    title: "Ver Tickets",
+    icon: Receipt,
+    href: "/admin/tickets",
+    description: "Historial de tickets",
   },
 ];
 

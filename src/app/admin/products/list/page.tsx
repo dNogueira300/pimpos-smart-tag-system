@@ -15,8 +15,6 @@ import {
   Calendar,
   Grid,
   List,
-  Download,
-  Upload,
   MoreVertical,
   QrCode,
 } from "lucide-react";
@@ -733,18 +731,6 @@ export default function ProductsListPage() {
             </div>
 
             <div className="mt-4 lg:mt-0 flex flex-wrap gap-3">
-              <Link
-                href="/admin/products/import"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all"
-              >
-                <Upload className="h-4 w-4" />
-                Importar
-              </Link>
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-all">
-                <Download className="h-4 w-4" />
-                Exportar
-              </button>
-
               {/* Botón de QR unificado */}
               <button
                 onClick={() => handleGenerateQR(selectedProducts.size === 0)}

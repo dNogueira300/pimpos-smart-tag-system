@@ -322,6 +322,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
           itemCount: cartState.itemCount,
           items: cartState.items.map((item) => ({
             productId: item.product.id,
+            productName: item.product.name, // Agregar nombre del producto
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 
 interface SessionItem {
   productId: string;
+  productName?: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -15,6 +16,32 @@ interface CompleteSessionRequest {
   totalSpent: number;
   itemCount: number;
   items: SessionItem[];
+}
+
+// Función para generar número de ticket único
+async function generateTicketNumber(): Promise<string> {
+  const today = new Date();
+  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+  // Buscar el último ticket del día
+  const lastTicket = await prisma.ticket.findFirst({
+    where: {
+      ticketNumber: {
+        startsWith: `TKT-${dateStr}-`,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  let counter = 1;
+  if (lastTicket) {
+    const lastNumber = lastTicket.ticketNumber.split("-")[2];
+    counter = parseInt(lastNumber, 10) + 1;
+  }
+
+  return `TKT-${dateStr}-${counter.toString().padStart(3, "0")}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -90,9 +117,26 @@ export async function POST(request: NextRequest) {
       )
     );
 
+    // Generar número de ticket único
+    const ticketNumber = await generateTicketNumber();
+
+    // Crear el ticket con los detalles de la compra
+    const ticket = await prisma.ticket.create({
+      data: {
+        ticketNumber,
+        sessionId,
+        totalAmount: totalSpent,
+        budget: budget !== null ? budget : null,
+        itemCount,
+        items: items, // Guardar items como JSON
+        budgetExceeded: budget !== null ? totalSpent > budget : false,
+      },
+    });
+
     return NextResponse.json(
       {
         message: "Sesión completada exitosamente",
+        ticketNumber: ticket.ticketNumber,
         session: {
           ...shoppingSession,
           budget: shoppingSession.budget

@@ -522,13 +522,24 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         )}
 
-        {/* Botón agregar - igual al prototipo */}
-        <button
-          onClick={handleAddToCart}
-          className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg hover:shadow-xl"
-        >
-          Agregar al carrito
-        </button>
+        {/* Botones de acción */}
+        <div className="space-y-3">
+          <button
+            onClick={handleAddToCart}
+            className="w-full bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg hover:shadow-xl"
+          >
+            Agregar al carrito
+          </button>
+
+          {/* Botón Ver Carrito */}
+          <button
+            onClick={() => router.push('/client/cart')}
+            className="w-full bg-gray-700 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            Ver Carrito {cartState.itemCount > 0 && `(${cartState.itemCount})`}
+          </button>
+        </div>
       </div>
 
       {/* Barra de presupuesto */}
