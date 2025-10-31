@@ -23,7 +23,6 @@ import {
 import { Product, Category } from "@/types/product";
 import {
   generateSingleProductQRPDF,
-  generateMultipleProductsQRPDF,
   generateGridQRPDF,
 } from "@/utils/qrPdfGenerator";
 import ConfirmQRDownloadModal from "@/components/admin/ConfirmQRDownloadModal";
@@ -262,7 +261,6 @@ export default function ProductsListPage() {
       setIsGeneratingQR(false);
     }
   };
-
 
   // Togglear selección de producto
   const toggleProductSelection = (productId: string) => {
