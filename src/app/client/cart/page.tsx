@@ -1,11 +1,10 @@
 // src/app/client/cart/page.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import html2canvas from "html2canvas";
 import {
   ArrowLeft,
   Trash2,
@@ -13,7 +12,6 @@ import {
   Minus,
   Scan,
   CheckCircle,
-  Download,
 } from "lucide-react";
 import { useShopping } from "@/contexts/ShoppingContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -37,9 +35,6 @@ export default function CartPage() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [isCompletingSession, setIsCompletingSession] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [isDownloadingTicket, setIsDownloadingTicket] = useState(false);
-
-  const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDeleteProduct = (productId: string) => {
     setProductToDelete(productId);
@@ -105,49 +100,6 @@ export default function CartPage() {
       console.error("Error al procesar QR:", error);
       // Si hay error, intentar usar el texto tal cual
       router.push(`/client/product/${decodedText}?from=qr`);
-    }
-  };
-
-  const handleDownloadTicket = async () => {
-    if (!ticketRef.current) return;
-
-    setIsDownloadingTicket(true);
-    try {
-      // Hacer visible temporalmente el ticket para capturarlo
-      ticketRef.current.style.display = "block";
-
-      // Capturar el elemento como imagen
-      const canvas = await html2canvas(ticketRef.current, {
-        backgroundColor: "#FFFFFF",
-        scale: 2, // Mayor calidad
-        logging: false,
-        useCORS: true,
-      });
-
-      // Ocultar nuevamente el ticket
-      ticketRef.current.style.display = "none";
-
-      // Convertir a blob y descargar
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          const date = new Date().toISOString().split("T")[0];
-          link.download = `ticket-pimpos-${date}.png`;
-          link.href = url;
-          link.click();
-          URL.revokeObjectURL(url);
-          showToast("Ticket descargado exitosamente", "success");
-        }
-      });
-    } catch (error) {
-      console.error("Error al descargar ticket:", error);
-      showToast("Error al descargar el ticket", "error");
-      if (ticketRef.current) {
-        ticketRef.current.style.display = "none";
-      }
-    } finally {
-      setIsDownloadingTicket(false);
     }
   };
 
@@ -356,25 +308,6 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Botón descargar ticket */}
-              <button
-                onClick={handleDownloadTicket}
-                disabled={isDownloadingTicket}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isDownloadingTicket ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    Generando ticket...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-5 w-5" />
-                    Descargar ticket
-                  </>
-                )}
-              </button>
-
               {/* Botón finalizar */}
               <button
                 onClick={handleFinish}
@@ -460,115 +393,6 @@ export default function CartPage() {
         onClose={() => setShowScanner(false)}
         onScanSuccess={handleQRScanSuccess}
       />
-
-      {/* Ticket para descarga (invisible hasta que se genera) */}
-      <div
-        ref={ticketRef}
-        style={{ display: "none", backgroundColor: "#FFFFFF" }}
-      >
-        <div style={{ width: "400px", padding: "32px", backgroundColor: "#FFFFFF" }}>
-          {/* Header del ticket */}
-          <div style={{ textAlign: "center", marginBottom: "24px", paddingBottom: "16px", borderBottom: "2px solid #D1D5DB" }}>
-            <h1 style={{ fontSize: "30px", fontWeight: "bold", color: "#E37836", marginBottom: "8px" }}>
-              SmartTag Pimpos
-            </h1>
-            <p style={{ fontSize: "14px", color: "#4B5563" }}>
-              Ticket de Compra
-            </p>
-            <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>
-              {new Date().toLocaleDateString("es-PE", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-
-          {/* Lista de productos */}
-          <div style={{ marginBottom: "24px" }}>
-            <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#111827", marginBottom: "12px" }}>
-              Productos ({cartState.itemCount})
-            </h2>
-            <div>
-              {cartState.items.map((item, index) => (
-                <div key={item.product.id} style={{ paddingBottom: "12px", borderBottom: "1px solid #E5E7EB", marginBottom: "12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-                    <span style={{ fontWeight: "600", color: "#111827", fontSize: "14px", flex: 1 }}>
-                      {index + 1}. {item.product.name}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#4B5563" }}>
-                    <span>
-                      {item.quantity} x S/. {item.unitPrice.toFixed(2)}
-                    </span>
-                    <span style={{ fontWeight: "bold", color: "#111827" }}>
-                      S/. {item.totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Resumen */}
-          <div style={{ borderTop: "2px solid #D1D5DB", paddingTop: "16px", marginBottom: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "8px" }}>
-              <span style={{ color: "#4B5563" }}>Subtotal:</span>
-              <span style={{ fontWeight: "600", color: "#111827" }}>
-                S/. {cartState.totalSpent.toFixed(2)}
-              </span>
-            </div>
-
-            {cartState.budget !== null && (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "8px" }}>
-                  <span style={{ color: "#4B5563" }}>Presupuesto:</span>
-                  <span style={{ fontWeight: "600", color: "#111827" }}>
-                    S/. {cartState.budget.toFixed(2)}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    color: cartState.budgetExceeded ? "#DC2626" : "#059669",
-                    marginBottom: "8px"
-                  }}
-                >
-                  <span>
-                    {cartState.budgetExceeded ? "Exceso:" : "Disponible:"}
-                  </span>
-                  <span>
-                    S/.{" "}
-                    {cartState.budgetExceeded
-                      ? (cartState.totalSpent - cartState.budget).toFixed(2)
-                      : cartState.budgetRemaining?.toFixed(2)}
-                  </span>
-                </div>
-              </>
-            )}
-
-            <div style={{ borderTop: "2px solid #D1D5DB", paddingTop: "12px", marginTop: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "20px", fontWeight: "bold", color: "#111827" }}>TOTAL</span>
-                <span style={{ fontSize: "24px", fontWeight: "bold", color: "#B55424" }}>
-                  S/. {cartState.totalSpent.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{ textAlign: "center", fontSize: "12px", color: "#6B7280", borderTop: "1px solid #E5E7EB", paddingTop: "16px", marginTop: "16px" }}>
-            <p style={{ marginBottom: "4px" }}>¡Gracias por tu compra!</p>
-            <p>SmartTag Pimpos - Tu compra inteligente</p>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

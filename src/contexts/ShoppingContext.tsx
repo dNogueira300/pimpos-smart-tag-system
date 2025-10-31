@@ -11,6 +11,7 @@ interface ShoppingContextType {
   cartState: CartState;
   sessionId: string;
   budgetConfigured: boolean;
+  ticketNumber: string | null;
 
   // Acciones del carrito
   addToCart: (product: Product, quantity: number) => void;
@@ -26,7 +27,7 @@ interface ShoppingContextType {
   // Utilidades
   getBudgetStatus: () => BudgetStatus;
   getItemQuantity: (productId: string) => number;
-  completeSession: () => Promise<void>;
+  completeSession: () => Promise<string>;
   isSessionExpired: () => boolean;
   shouldShowBudgetModal: () => boolean;
 }
@@ -36,9 +37,12 @@ const ShoppingContext = createContext<ShoppingContextType | undefined>(
 );
 
 const STORAGE_KEY = "pimpos_shopping_session";
+const TICKET_STORAGE_KEY = "pimpos_last_ticket";
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hora en milisegundos
 
 export function ShoppingProvider({ children }: { children: React.ReactNode }) {
+  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
+
   const [sessionId] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -308,7 +312,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Completar sesión (guardar en DB)
-  const completeSession = async () => {
+  const completeSession = async (): Promise<string> => {
     try {
       const response = await fetch("/api/client/session/complete", {
         method: "POST",
@@ -334,7 +338,28 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Error al completar la sesión");
       }
 
-      // Limpiar localStorage
+      const data = await response.json();
+      const generatedTicketNumber = data.ticketNumber;
+
+      // Guardar el ticketNumber y los datos del carrito para la descarga
+      if (typeof window !== "undefined") {
+        const ticketData = {
+          ticketNumber: generatedTicketNumber,
+          items: cartState.items,
+          budget: cartState.budget,
+          totalSpent: cartState.totalSpent,
+          itemCount: cartState.itemCount,
+          budgetExceeded: cartState.budgetExceeded,
+          budgetRemaining: cartState.budgetRemaining,
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(ticketData));
+      }
+
+      // Actualizar estado del ticketNumber
+      setTicketNumber(generatedTicketNumber);
+
+      // Limpiar localStorage de sesión
       if (typeof window !== "undefined") {
         localStorage.removeItem(STORAGE_KEY);
       }
@@ -342,6 +367,8 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       // Resetear estado completo incluyendo budgetConfigured
       setCartState(getInitialState());
       setBudgetConfigured(false);
+
+      return generatedTicketNumber;
     } catch (error) {
       console.error("Error al completar sesión:", error);
       throw error;
@@ -382,6 +409,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     cartState,
     sessionId,
     budgetConfigured,
+    ticketNumber,
     addToCart,
     removeFromCart,
     updateQuantity,

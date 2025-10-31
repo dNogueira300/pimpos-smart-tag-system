@@ -5,6 +5,58 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { uploadImage, validateImageFile } from "@/lib/upload";
 
+// Función para generar código de producto automáticamente
+async function generateProductCode(
+  productName: string,
+  categoryId: string
+): Promise<string> {
+  // Obtener la categoría
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+
+  if (!category) {
+    throw new Error("Categoría no encontrada");
+  }
+
+  // Extraer primeras 3 letras de la categoría (mayúsculas, sin espacios)
+  const categoryPrefix = category.name
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .slice(0, 3)
+    .padEnd(3, "X");
+
+  // Extraer primeras 4 letras del producto (mayúsculas, sin espacios)
+  const productPrefix = productName
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .slice(0, 4)
+    .padEnd(4, "X");
+
+  // Buscar el último producto con este patrón
+  const lastProduct = await prisma.product.findFirst({
+    where: {
+      code: {
+        startsWith: `${categoryPrefix}-${productPrefix}-`,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  let counter = 1;
+  if (lastProduct) {
+    // Extraer el número del último código
+    const lastNumber = lastProduct.code.split("-")[2];
+    if (lastNumber) {
+      counter = parseInt(lastNumber, 10) + 1;
+    }
+  }
+
+  return `${categoryPrefix}-${productPrefix}-${counter.toString().padStart(3, "0")}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticación
@@ -111,7 +163,6 @@ export async function POST(request: NextRequest) {
     // Validaciones básicas
     if (
       !productData.name ||
-      !productData.code ||
       !productData.price ||
       !productData.categoryId
     ) {
@@ -121,16 +172,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si ya existe un producto con el mismo código
-    const existingProduct = await prisma.product.findUnique({
-      where: { code: productData.code },
-    });
+    // Generar código automáticamente si no se proporciona
+    if (!productData.code || productData.code.trim() === "") {
+      try {
+        productData.code = await generateProductCode(
+          productData.name,
+          productData.categoryId
+        );
+      } catch (error) {
+        console.error("Error al generar código de producto:", error);
+        return NextResponse.json(
+          { error: "Error al generar código de producto" },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Si se proporciona un código, verificar que no exista
+      const existingProduct = await prisma.product.findUnique({
+        where: { code: productData.code },
+      });
 
-    if (existingProduct) {
-      return NextResponse.json(
-        { error: "Ya existe un producto con este código" },
-        { status: 400 }
-      );
+      if (existingProduct) {
+        return NextResponse.json(
+          { error: "Ya existe un producto con este código" },
+          { status: 400 }
+        );
+      }
     }
 
     // Procesar imagen si existe
