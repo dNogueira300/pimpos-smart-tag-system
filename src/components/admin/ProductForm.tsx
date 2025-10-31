@@ -124,9 +124,7 @@ export default function ProductForm({
     if (!formData.categoryId) {
       newErrors.categoryId = "Debe seleccionar una categoría";
     }
-    if (!formData.code.trim()) {
-      newErrors.code = "El código del producto es obligatorio";
-    }
+    // El código NO es obligatorio, se genera automáticamente si está vacío
 
     // Validaciones nutricionales (si se proporciona algún valor)
     const nutritionalFields = [

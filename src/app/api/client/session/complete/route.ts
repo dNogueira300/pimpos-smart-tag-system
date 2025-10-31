@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
 
     // Generar número de ticket único
     const ticketNumber = await generateTicketNumber();
+    console.log("Número de ticket generado:", ticketNumber);
 
     // Crear el ticket con los detalles de la compra
     const ticket = await prisma.ticket.create({
@@ -126,12 +127,12 @@ export async function POST(request: NextRequest) {
         totalAmount: totalSpent,
         budget: budget !== null ? budget : null,
         itemCount,
-        // --- 2. CORRECCIÓN AQUÍ ---
-        // Usamos el tipo 'InputJsonValue' de Prisma en lugar de 'any'
         items: items as unknown as Prisma.InputJsonValue,
         budgetExceeded: budget !== null ? totalSpent > budget : false,
       },
     });
+
+    console.log("Ticket creado exitosamente:", ticket.ticketNumber);
 
     return NextResponse.json(
       {

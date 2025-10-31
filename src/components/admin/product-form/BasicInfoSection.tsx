@@ -157,7 +157,7 @@ export default function BasicInfoSection({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Código del Producto *
+            Código del Producto
           </label>
           <div className="relative">
             <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -167,7 +167,7 @@ export default function BasicInfoSection({
               onChange={(e) =>
                 updateFormData("code", e.target.value.toUpperCase())
               }
-              placeholder="Ej: PAN-FRANC-CH"
+              placeholder="Dejar vacío para generar automáticamente"
               className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all ${
                 errors.code ? "border-red-300" : "border-gray-300"
               }`}
@@ -177,7 +177,7 @@ export default function BasicInfoSection({
             <p className="mt-1 text-sm text-red-600">{errors.code}</p>
           )}
           <p className="mt-1 text-xs text-gray-500">
-            Código único para identificar el producto internamente
+            Formato automático: CAT-PROD-001 (categoría-producto-número)
           </p>
         </div>
 
