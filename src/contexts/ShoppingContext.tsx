@@ -21,6 +21,7 @@ interface ShoppingContextType {
   // Acciones del presupuesto
   setBudget: (budget: number | null) => void;
   markBudgetAsConfigured: () => void;
+  resetBudgetConfig: () => void;
 
   // Utilidades
   getBudgetStatus: () => BudgetStatus;
@@ -266,6 +267,11 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     setBudgetConfigured(true);
   };
 
+  // Resetear configuración de presupuesto (para cuando se escanea un QR)
+  const resetBudgetConfig = () => {
+    setBudgetConfigured(false);
+  };
+
   // Obtener estado del presupuesto
   const getBudgetStatus = (): BudgetStatus => {
     if (cartState.budget === null) return "none";
@@ -331,6 +337,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     clearCart,
     setBudget,
     markBudgetAsConfigured,
+    resetBudgetConfig,
     getBudgetStatus,
     getItemQuantity,
     completeSession,
