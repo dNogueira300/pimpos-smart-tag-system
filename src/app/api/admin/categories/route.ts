@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Verificar autenticación
     const session = await getServerSession(authOptions);
@@ -12,8 +12,12 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    // Obtener parámetro para incluir categorías inactivas
+    const searchParams = request.nextUrl.searchParams;
+    const includeInactive = searchParams.get("includeInactive") === "true";
+
     const categories = await prisma.category.findMany({
-      where: { isActive: true },
+      where: includeInactive ? {} : { isActive: true },
       orderBy: { name: "asc" },
       include: {
         _count: {

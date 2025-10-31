@@ -24,6 +24,9 @@ import {
   generateGridQRPDF,
 } from "@/utils/qrPdfGenerator";
 import ConfirmQRDownloadModal from "@/components/admin/ConfirmQRDownloadModal";
+import ConfirmModal from "@/components/ConfirmModal";
+import { useToast } from "@/components/ToastContainer";
+
 interface ProductsResponse {
   products: Product[];
   pagination: {
@@ -45,6 +48,16 @@ export default function ProductsListPage() {
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [showQRConfirmModal, setShowQRConfirmModal] = useState(false);
   const [qrProductCount, setQRProductCount] = useState(0);
+
+  // Toast notifications
+  const { showSuccess, showError } = useToast();
+
+  // Modal de confirmación para eliminar
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -117,30 +130,34 @@ export default function ProductsListPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Eliminar producto
-  const handleDeleteProduct = async (
-    productId: string,
-    productName: string
-  ) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar "${productName}"?`)) {
-      return;
-    }
+  // Abrir modal de confirmación para eliminar
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    setProductToDelete({ id: productId, name: productName });
+    setDeleteModalOpen(true);
+  };
+
+  // Confirmar eliminación
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetch(`/api/admin/products/${productToDelete.id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        await fetchProducts(); // Recargar la lista
-        alert("Producto eliminado exitosamente");
+        await fetchProducts();
+        showSuccess(
+          "Producto eliminado",
+          `El producto "${productToDelete.name}" ha sido eliminado exitosamente`
+        );
       } else {
         const error = await response.json();
-        alert(`Error al eliminar producto: ${error.error}`);
+        showError("Error al eliminar", error.error || "No se pudo eliminar el producto");
       }
     } catch (error) {
       console.error("Error al eliminar producto:", error);
-      alert("Error al eliminar producto");
+      showError("Error", "Ocurrió un error al eliminar el producto");
     }
   };
 
@@ -153,9 +170,10 @@ export default function ProductsListPage() {
         name: product.name,
         code: product.code,
       });
+      showSuccess("QR generado", `Código QR generado para "${product.name}"`);
     } catch (error) {
       console.error("Error al generar QR:", error);
-      alert("Error al generar el código QR");
+      showError("Error", "No se pudo generar el código QR");
     } finally {
       setIsGeneratingQR(false);
     }
@@ -177,12 +195,12 @@ export default function ProductsListPage() {
         }
       } catch (error) {
         console.error("Error al obtener productos:", error);
-        alert("Error al obtener productos");
+        showError("Error", "No se pudieron obtener los productos");
         return;
       }
     } else {
       if (selectedProducts.size === 0) {
-        alert("Por favor selecciona al menos un producto");
+        showError("Selección requerida", "Por favor selecciona al menos un producto");
         return;
       }
       productsToGenerate = products.filter((p) => selectedProducts.has(p.id));
@@ -204,12 +222,13 @@ export default function ProductsListPage() {
         code: productsToGenerate[0].code,
       };
       await generateSingleProductQRPDF(productData);
+      showSuccess("QR generado", `Código QR generado exitosamente`);
 
       // Limpiar selección
       setSelectedProducts(new Set());
     } catch (error) {
       console.error("Error al generar QR:", error);
-      alert("Error al generar el código QR");
+      showError("Error", "No se pudo generar el código QR");
     } finally {
       setIsGeneratingQR(false);
     }
@@ -249,12 +268,16 @@ export default function ProductsListPage() {
 
       // Generar en formato grid
       await generateGridQRPDF(productsData, 2, 3);
+      showSuccess(
+        "QR generados",
+        `Se generaron ${productsData.length} códigos QR exitosamente`
+      );
 
       // Limpiar selección
       setSelectedProducts(new Set());
     } catch (error) {
       console.error("Error al generar QR:", error);
-      alert("Error al generar los códigos QR");
+      showError("Error", "No se pudieron generar los códigos QR");
     } finally {
       setIsGeneratingQR(false);
     }
@@ -1028,6 +1051,21 @@ export default function ProductsListPage() {
       />
 
       <FloatingNewProductButton />
+
+      {/* Modal de confirmación para eliminar producto */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setProductToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="¿Eliminar producto?"
+        message={`¿Estás seguro de que deseas eliminar el producto "${productToDelete?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </>
   );
 }

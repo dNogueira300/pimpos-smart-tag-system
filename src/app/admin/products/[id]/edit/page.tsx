@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData, Product } from "@/types/product";
+import { useToast } from "@/components/ToastContainer";
 
 // CORREGIDO: Interface actualizada para Next.js 15
 interface EditProductPageProps {
@@ -29,6 +30,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
+  const { showError: showToastError } = useToast();
 
   // CORREGIDO: Resolver params asíncrono para Next.js 15
   useEffect(() => {
@@ -166,10 +168,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       }, 2000);
     } catch (error) {
       console.error("Error al actualizar producto:", error);
-      alert(
+      showToastError(
+        "Error al actualizar producto",
         error instanceof Error
           ? error.message
-          : "Error al actualizar el producto"
+          : "Ocurrió un error al actualizar el producto"
       );
     } finally {
       setIsSubmitting(false);
