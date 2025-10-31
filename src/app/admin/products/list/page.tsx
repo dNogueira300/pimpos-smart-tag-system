@@ -23,9 +23,9 @@ import {
 import { Product, Category } from "@/types/product";
 import {
   generateSingleProductQRPDF,
-  generateMultipleProductsQRPDF,
   generateGridQRPDF,
 } from "@/utils/qrPdfGenerator";
+import ConfirmQRDownloadModal from "@/components/admin/ConfirmQRDownloadModal";
 interface ProductsResponse {
   products: Product[];
   pagination: {
@@ -45,6 +45,8 @@ export default function ProductsListPage() {
     new Set()
   );
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [showQRConfirmModal, setShowQRConfirmModal] = useState(false);
+  const [qrProductCount, setQRProductCount] = useState(0);
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -161,94 +163,94 @@ export default function ProductsListPage() {
     }
   };
 
-  // Generar QR para productos seleccionados (formato grid por defecto)
-  const handleGenerateSelectedQR = async () => {
-    if (selectedProducts.size === 0) {
-      alert("Por favor selecciona al menos un producto");
+  // Generar QR para productos seleccionados o todos
+  const handleGenerateQR = async (all: boolean = false) => {
+    let productsToGenerate: Product[];
+
+    if (all) {
+      // Fetch all products
+      try {
+        const response = await fetch(`/api/admin/products?limit=1000`);
+        if (response.ok) {
+          const data: ProductsResponse = await response.json();
+          productsToGenerate = data.products;
+        } else {
+          throw new Error("Error al obtener productos");
+        }
+      } catch (error) {
+        console.error("Error al obtener productos:", error);
+        alert("Error al obtener productos");
+        return;
+      }
+    } else {
+      if (selectedProducts.size === 0) {
+        alert("Por favor selecciona al menos un producto");
+        return;
+      }
+      productsToGenerate = products.filter((p) => selectedProducts.has(p.id));
+    }
+
+    // Si son más de 1, mostrar modal de confirmación
+    if (productsToGenerate.length > 1) {
+      setQRProductCount(productsToGenerate.length);
+      setShowQRConfirmModal(true);
       return;
     }
 
+    // Si es solo 1, generar directamente
     setIsGeneratingQR(true);
     try {
-      const selectedProductsData = products
-        .filter((p) => selectedProducts.has(p.id))
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          code: p.code,
-        }));
-
-      if (selectedProductsData.length === 1) {
-        await generateSingleProductQRPDF(selectedProductsData[0]);
-      } else {
-        // Usar grid por defecto para múltiples productos
-        await generateGridQRPDF(selectedProductsData, 2, 3);
-      }
+      const productData = {
+        id: productsToGenerate[0].id,
+        name: productsToGenerate[0].name,
+        code: productsToGenerate[0].code,
+      };
+      await generateSingleProductQRPDF(productData);
 
       // Limpiar selección
       setSelectedProducts(new Set());
     } catch (error) {
       console.error("Error al generar QR:", error);
-      alert("Error al generar los códigos QR");
+      alert("Error al generar el código QR");
     } finally {
       setIsGeneratingQR(false);
     }
   };
 
-  // Generar QR para todos los productos en formato grid (con confirmación)
-  const handleGenerateAllQR = async () => {
-    if (
-      !confirm(
-        `¿Estás seguro de generar códigos QR para todos los ${pagination.total} productos? Se generará un PDF en formato grid (6 por página).`
-      )
-    ) {
-      return;
-    }
-
+  // Confirmar y generar QR masivo
+  const handleConfirmQRGeneration = async () => {
+    setShowQRConfirmModal(false);
     setIsGeneratingQR(true);
-    try {
-      // Fetch all products without pagination
-      const response = await fetch(`/api/admin/products?limit=1000`);
-      if (response.ok) {
-        const data: ProductsResponse = await response.json();
-        const allProductsData = data.products.map((p) => ({
-          id: p.id,
-          name: p.name,
-          code: p.code,
-        }));
 
-        // Usar grid por defecto para todos los productos
-        await generateGridQRPDF(allProductsData, 2, 3);
+    try {
+      let productsData: { id: string; name: string; code?: string }[];
+
+      if (qrProductCount === pagination.total) {
+        // Generar todos
+        const response = await fetch(`/api/admin/products?limit=1000`);
+        if (response.ok) {
+          const data: ProductsResponse = await response.json();
+          productsData = data.products.map((p) => ({
+            id: p.id,
+            name: p.name,
+            code: p.code,
+          }));
+        } else {
+          throw new Error("Error al obtener productos");
+        }
       } else {
-        throw new Error("Error al obtener productos");
+        // Generar seleccionados
+        productsData = products
+          .filter((p) => selectedProducts.has(p.id))
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            code: p.code,
+          }));
       }
-    } catch (error) {
-      console.error("Error al generar QR:", error);
-      alert("Error al generar los códigos QR");
-    } finally {
-      setIsGeneratingQR(false);
-    }
-  };
 
-  // Generar QR en formato uno por página (útil para impresiones individuales)
-  const handleGenerateOnePerPage = async () => {
-    if (selectedProducts.size === 0) {
-      alert("Por favor selecciona al menos un producto");
-      return;
-    }
-
-    setIsGeneratingQR(true);
-    try {
-      const selectedProductsData = products
-        .filter((p) => selectedProducts.has(p.id))
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          code: p.code,
-        }));
-
-      // Generar un producto por página (formato grande)
-      await generateMultipleProductsQRPDF(selectedProductsData);
+      // Generar en formato grid
+      await generateGridQRPDF(productsData, 2, 3);
 
       // Limpiar selección
       setSelectedProducts(new Set());
@@ -743,31 +745,23 @@ export default function ProductsListPage() {
                 Exportar
               </button>
 
-              {/* Botones de QR */}
+              {/* Botón de QR unificado */}
               <button
-                onClick={handleGenerateSelectedQR}
-                disabled={selectedProducts.size === 0 || isGeneratingQR}
+                onClick={() => handleGenerateQR(selectedProducts.size === 0)}
+                disabled={isGeneratingQR}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-purple-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Generar QR Grid para productos seleccionados (6 por página)"
+                title={
+                  selectedProducts.size > 0
+                    ? `Generar QR para ${selectedProducts.size} producto(s) seleccionado(s)`
+                    : "Generar QR para todos los productos"
+                }
               >
                 <QrCode className="h-4 w-4" />
                 {isGeneratingQR
                   ? "Generando..."
-                  : `QR Grid ${
-                      selectedProducts.size > 0
-                        ? `(${selectedProducts.size})`
-                        : ""
-                    }`}
-              </button>
-
-              <button
-                onClick={handleGenerateAllQR}
-                disabled={isGeneratingQR}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-indigo-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Generar QR Grid para todos los productos (6 por página)"
-              >
-                <QrCode className="h-4 w-4" />
-                QR Todos (Grid)
+                  : selectedProducts.size > 0
+                  ? `Generar QR (${selectedProducts.size})`
+                  : `Generar QR (Todos)`}
               </button>
 
               <Link
@@ -799,22 +793,13 @@ export default function ProductsListPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={handleGenerateSelectedQR}
+                  onClick={() => handleGenerateQR(false)}
                   disabled={isGeneratingQR}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  title="Generar QR en formato grid (6 por página)"
+                  title={`Generar QR para ${selectedProducts.size} producto(s)`}
                 >
                   <QrCode className="h-4 w-4" />
-                  QR Grid
-                </button>
-                <button
-                  onClick={handleGenerateOnePerPage}
-                  disabled={isGeneratingQR}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  title="Generar un QR por página (formato grande)"
-                >
-                  <QrCode className="h-4 w-4" />
-                  QR 1x Página
+                  Generar QR ({selectedProducts.size})
                 </button>
                 <button
                   onClick={() => setSelectedProducts(new Set())}
@@ -1046,6 +1031,16 @@ export default function ProductsListPage() {
           </>
         )}
       </div>
+
+      {/* Modal de confirmación para descarga de QR */}
+      <ConfirmQRDownloadModal
+        isOpen={showQRConfirmModal}
+        onClose={() => setShowQRConfirmModal(false)}
+        onConfirm={handleConfirmQRGeneration}
+        productCount={qrProductCount}
+        isLoading={isGeneratingQR}
+      />
+
       <FloatingNewProductButton />
     </>
   );

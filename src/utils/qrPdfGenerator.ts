@@ -32,8 +32,8 @@ export async function generateSingleProductQRPDF(
   const qrX = (pageWidth - QR_SIZE_MM) / 2;
   const qrY = 30; // Margen superior
 
-  // Generar código QR como imagen
-  const productUrl = `${DOMAIN}/client/product/${product.id}`;
+  // Generar código QR como imagen (con parámetro para detectar escaneo)
+  const productUrl = `${DOMAIN}/client/product/${product.id}?from=qr`;
   const qrDataUrl = await QRCode.toDataURL(productUrl, {
     width: 500,
     margin: 1,
@@ -137,8 +137,8 @@ export async function generateMultipleProductsQRPDF(
     const qrX = (pageWidth - QR_SIZE_MM) / 2;
     const qrY = 30; // Margen superior
 
-    // Generar código QR como imagen
-    const productUrl = `${DOMAIN}/client/product/${product.id}`;
+    // Generar código QR como imagen (con parámetro para detectar escaneo)
+    const productUrl = `${DOMAIN}/client/product/${product.id}?from=qr`;
     const qrDataUrl = await QRCode.toDataURL(productUrl, {
       width: 500,
       margin: 1,
@@ -266,8 +266,8 @@ export async function generateGridQRPDF(
     const cellX = margin + col * cellWidth;
     const cellY = margin + row * cellHeight;
 
-    // Generar código QR como imagen
-    const productUrl = `${DOMAIN}/client/product/${product.id}`;
+    // Generar código QR como imagen (con parámetro para detectar escaneo)
+    const productUrl = `${DOMAIN}/client/product/${product.id}?from=qr`;
     const qrDataUrl = await QRCode.toDataURL(productUrl, {
       width: 400,
       margin: 1,
@@ -308,7 +308,6 @@ export async function generateGridQRPDF(
     doc.text(nfcText, nfcX, nfcY);
 
     // Agregar enlace NFC como texto copiable
-    // --- LÍNEA 308 (REDUNDANTE) ELIMINADA ---
     const urlY = nfcY + 4;
     doc.setFontSize(5);
     doc.setTextColor(0, 0, 255);

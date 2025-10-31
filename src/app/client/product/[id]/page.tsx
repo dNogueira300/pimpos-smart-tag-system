@@ -26,7 +26,7 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { addToCart, cartState, getItemQuantity, budgetConfigured } =
+  const { addToCart, cartState, getItemQuantity, budgetConfigured, resetBudgetConfig } =
     useShopping();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -38,7 +38,20 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
-  // Redirigir a configuración de presupuesto si es la primera vez
+  // Detectar si viene de un QR y resetear presupuesto
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromQR = urlParams.get("from") === "qr";
+
+      if (fromQR) {
+        // Resetear configuración de presupuesto para que pregunte de nuevo
+        resetBudgetConfig();
+      }
+    }
+  }, [resetBudgetConfig]);
+
+  // Redirigir a configuración de presupuesto si no está configurado
   useEffect(() => {
     if (!budgetConfigured) {
       router.replace(`/client/budget/${id}`);
