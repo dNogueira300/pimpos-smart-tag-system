@@ -18,8 +18,14 @@ import {
   Download,
   Upload,
   MoreVertical,
+  QrCode,
 } from "lucide-react";
 import { Product, Category } from "@/types/product";
+import {
+  generateSingleProductQRPDF,
+  generateMultipleProductsQRPDF,
+  generateGridQRPDF,
+} from "@/utils/qrPdfGenerator";
 interface ProductsResponse {
   products: Product[];
   pagination: {
@@ -35,6 +41,10 @@ export default function ProductsListPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
+    new Set()
+  );
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -134,6 +144,139 @@ export default function ProductsListPage() {
     }
   };
 
+  // Generar QR individual
+  const handleGenerateSingleQR = async (product: Product) => {
+    setIsGeneratingQR(true);
+    try {
+      await generateSingleProductQRPDF({
+        id: product.id,
+        name: product.name,
+        code: product.code,
+      });
+    } catch (error) {
+      console.error("Error al generar QR:", error);
+      alert("Error al generar el código QR");
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // Generar QR para productos seleccionados
+  const handleGenerateSelectedQR = async () => {
+    if (selectedProducts.size === 0) {
+      alert("Por favor selecciona al menos un producto");
+      return;
+    }
+
+    setIsGeneratingQR(true);
+    try {
+      const selectedProductsData = products
+        .filter((p) => selectedProducts.has(p.id))
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          code: p.code,
+        }));
+
+      if (selectedProductsData.length === 1) {
+        await generateSingleProductQRPDF(selectedProductsData[0]);
+      } else {
+        await generateMultipleProductsQRPDF(selectedProductsData);
+      }
+
+      // Limpiar selección
+      setSelectedProducts(new Set());
+    } catch (error) {
+      console.error("Error al generar QR:", error);
+      alert("Error al generar los códigos QR");
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // Generar QR para todos los productos (con confirmación)
+  const handleGenerateAllQR = async () => {
+    if (
+      !confirm(
+        `¿Estás seguro de generar códigos QR para todos los ${pagination.total} productos? Esto puede tardar un momento.`
+      )
+    ) {
+      return;
+    }
+
+    setIsGeneratingQR(true);
+    try {
+      // Fetch all products without pagination
+      const response = await fetch(`/api/admin/products?limit=1000`);
+      if (response.ok) {
+        const data: ProductsResponse = await response.json();
+        const allProductsData = data.products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          code: p.code,
+        }));
+
+        await generateMultipleProductsQRPDF(allProductsData);
+      } else {
+        throw new Error("Error al obtener productos");
+      }
+    } catch (error) {
+      console.error("Error al generar QR:", error);
+      alert("Error al generar los códigos QR");
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // Generar QR en formato grid (varios por página)
+  const handleGenerateGridQR = async () => {
+    if (selectedProducts.size === 0) {
+      alert("Por favor selecciona al menos un producto para el formato grid");
+      return;
+    }
+
+    setIsGeneratingQR(true);
+    try {
+      const selectedProductsData = products
+        .filter((p) => selectedProducts.has(p.id))
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          code: p.code,
+        }));
+
+      await generateGridQRPDF(selectedProductsData, 2, 3); // 2 columnas x 3 filas
+
+      // Limpiar selección
+      setSelectedProducts(new Set());
+    } catch (error) {
+      console.error("Error al generar QR:", error);
+      alert("Error al generar los códigos QR en formato grid");
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // Togglear selección de producto
+  const toggleProductSelection = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  // Seleccionar todos los productos de la página actual
+  const toggleSelectAll = () => {
+    if (selectedProducts.size === products.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(products.map((p) => p.id)));
+    }
+  };
+
   // Función para formatear precio
   const formatPrice = (price: number | string | { toNumber: () => number }) => {
     let numericPrice: number;
@@ -199,10 +342,24 @@ export default function ProductsListPage() {
         return (
           <div
             key={product.id}
-            className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300"
+            className={`bg-white rounded-2xl shadow-lg border overflow-hidden hover:shadow-xl transition-all duration-300 ${
+              selectedProducts.has(product.id)
+                ? "border-purple-500 ring-2 ring-purple-200"
+                : "border-gray-200"
+            }`}
           >
             {/* Imagen del producto */}
             <div className="relative h-48 bg-gray-100">
+              {/* Checkbox de selección */}
+              <div className="absolute top-3 left-3 z-10">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.has(product.id)}
+                  onChange={() => toggleProductSelection(product.id)}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
@@ -218,7 +375,7 @@ export default function ProductsListPage() {
               )}
 
               {/* Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1">
+              <div className="absolute top-3 left-12 flex flex-col gap-1">
                 {product.isFeatured && (
                   <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-bold">
                     Destacado
@@ -316,6 +473,14 @@ export default function ProductsListPage() {
                   <Edit className="h-3 w-3" />
                   Editar
                 </Link>
+                <button
+                  onClick={() => handleGenerateSingleQR(product)}
+                  disabled={isGeneratingQR}
+                  className="bg-purple-500 hover:bg-purple-600 text-white text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                  title="Generar QR"
+                >
+                  <QrCode className="h-3 w-3" />
+                </button>
                 <Link
                   href={`/client/product/${product.id}`}
                   target="_blank"
@@ -344,6 +509,17 @@ export default function ProductsListPage() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-4 py-4 text-center">
+                <input
+                  type="checkbox"
+                  checked={
+                    products.length > 0 &&
+                    selectedProducts.size === products.length
+                  }
+                  onChange={toggleSelectAll}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                />
+              </th>
               <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Producto
               </th>
@@ -379,8 +555,18 @@ export default function ProductsListPage() {
               return (
                 <tr
                   key={product.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className={`hover:bg-gray-50 transition-colors ${
+                    selectedProducts.has(product.id) ? "bg-purple-50" : ""
+                  }`}
                 >
+                  <td className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.has(product.id)}
+                      onChange={() => toggleProductSelection(product.id)}
+                      className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
@@ -486,6 +672,14 @@ export default function ProductsListPage() {
                       >
                         <Edit className="h-4 w-4" />
                       </Link>
+                      <button
+                        onClick={() => handleGenerateSingleQR(product)}
+                        disabled={isGeneratingQR}
+                        className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-colors disabled:opacity-50"
+                        title="Generar QR"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </button>
                       <Link
                         href={`/client/product/${product.id}`}
                         target="_blank"
@@ -545,6 +739,34 @@ export default function ProductsListPage() {
                 <Download className="h-4 w-4" />
                 Exportar
               </button>
+
+              {/* Botones de QR */}
+              <button
+                onClick={handleGenerateSelectedQR}
+                disabled={selectedProducts.size === 0 || isGeneratingQR}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-purple-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Generar QR para productos seleccionados"
+              >
+                <QrCode className="h-4 w-4" />
+                {isGeneratingQR
+                  ? "Generando..."
+                  : `QR Seleccionados ${
+                      selectedProducts.size > 0
+                        ? `(${selectedProducts.size})`
+                        : ""
+                    }`}
+              </button>
+
+              <button
+                onClick={handleGenerateAllQR}
+                disabled={isGeneratingQR}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-indigo-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Generar QR para todos los productos"
+              >
+                <QrCode className="h-4 w-4" />
+                QR Todos
+              </button>
+
               <Link
                 href="/admin/products/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg"
@@ -558,6 +780,47 @@ export default function ProductsListPage() {
 
         {/* Filtros y búsqueda */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-amber-200">
+          {/* Barra de selección masiva */}
+          {selectedProducts.size > 0 && (
+            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.size === products.length}
+                  onChange={toggleSelectAll}
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-medium text-purple-900">
+                  {selectedProducts.size} producto(s) seleccionado(s)
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerateSelectedQR}
+                  disabled={isGeneratingQR}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  Generar QR
+                </button>
+                <button
+                  onClick={handleGenerateGridQR}
+                  disabled={isGeneratingQR}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  QR Grid
+                </button>
+                <button
+                  onClick={() => setSelectedProducts(new Set())}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {/* Búsqueda */}
             <div className="md:col-span-2">
