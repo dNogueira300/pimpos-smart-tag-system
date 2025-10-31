@@ -1,6 +1,7 @@
 // src/app/api/client/session/complete/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client"; // <-- 1. AÑADIR ESTA IMPORTACIÓN DE TIPO
 
 interface SessionItem {
   productId: string;
@@ -52,10 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Validaciones básicas
     if (!sessionId || !items || items.length === 0) {
-      return NextResponse.json(
-        { error: "Datos incompletos" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
     }
 
     // Verificar si la sesión ya existe
@@ -128,7 +126,9 @@ export async function POST(request: NextRequest) {
         totalAmount: totalSpent,
         budget: budget !== null ? budget : null,
         itemCount,
-        items: items, // Guardar items como JSON
+        // --- 2. CORRECCIÓN AQUÍ ---
+        // Usamos el tipo 'InputJsonValue' de Prisma en lugar de 'any'
+        items: items as unknown as Prisma.InputJsonValue,
         budgetExceeded: budget !== null ? totalSpent > budget : false,
       },
     });
