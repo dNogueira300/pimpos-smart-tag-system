@@ -7,6 +7,7 @@ import Image from "next/image";
 import { ArrowLeft, Camera, QrCode } from "lucide-react";
 import { useShopping } from "@/contexts/ShoppingContext";
 import { useToast } from "@/contexts/ToastContext";
+import QRScanner from "@/components/client/QRScanner";
 import Link from "next/link";
 
 export default function ScanPage() {
@@ -14,16 +15,50 @@ export default function ScanPage() {
   const { cartState } = useShopping();
   const { showToast } = useToast();
   const [productId, setProductId] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
 
-  // Simular escaneo de QR (en producción usarías una librería de escaneo real)
+  // Manejar input manual de código
   const handleManualInput = () => {
     if (!productId.trim()) {
       showToast("Por favor ingresa un código de producto", "error");
       return;
     }
 
-    // Redirigir a la página del producto
-    router.push(`/client/product/${productId}`);
+    // Redirigir a la página del producto con parámetro from=qr
+    router.push(`/client/product/${productId}?from=qr`);
+  };
+
+  // Manejar escaneo exitoso de QR
+  const handleQRScanSuccess = (decodedText: string) => {
+    try {
+      // El QR puede contener:
+      // 1. Una URL completa: https://pimpos-system.vercel.app/client/product/123?from=qr
+      // 2. Solo el ID del producto: 123
+
+      let productId: string;
+
+      // Verificar si es una URL
+      if (decodedText.includes("http") || decodedText.includes("/")) {
+        const url = new URL(decodedText);
+        const pathParts = url.pathname.split("/");
+        // El ID está en la última parte del path
+        productId = pathParts[pathParts.length - 1];
+      } else {
+        // Asumir que es solo el ID del producto
+        productId = decodedText;
+      }
+
+      // Cerrar el scanner
+      setShowScanner(false);
+
+      // Redirigir al producto con el parámetro from=qr
+      router.push(`/client/product/${productId}?from=qr`);
+    } catch (error) {
+      console.error("Error al procesar QR:", error);
+      setShowScanner(false);
+      // Si hay error, intentar usar el texto tal cual
+      router.push(`/client/product/${decodedText}?from=qr`);
+    }
   };
 
   return (
@@ -90,8 +125,11 @@ export default function ScanPage() {
                 </p>
               </div>
 
-              {/* Área de escaneo simulada */}
-              <div className="bg-gray-900 rounded-2xl p-8 relative overflow-hidden">
+              {/* Botón para abrir cámara */}
+              <button
+                onClick={() => setShowScanner(true)}
+                className="w-full bg-gray-900 rounded-2xl p-8 relative overflow-hidden hover:bg-gray-800 transition-all"
+              >
                 {/* Esquinas del marco */}
                 <div className="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-[#E37836] rounded-tl-lg"></div>
                 <div className="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-[#E37836] rounded-tr-lg"></div>
@@ -102,12 +140,12 @@ export default function ScanPage() {
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#E37836] animate-pulse"></div>
 
                 <div className="text-center">
-                  <QrCode className="h-32 w-32 mx-auto text-white/30" />
+                  <Camera className="h-32 w-32 mx-auto text-white/30" />
                   <p className="text-white/60 text-sm mt-4">
-                    Esperando código QR...
+                    Toca para abrir la cámara
                   </p>
                 </div>
-              </div>
+              </button>
 
               {/* Separador */}
               <div className="relative">
@@ -159,6 +197,13 @@ export default function ScanPage() {
           </div>
         </div>
       </div>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+      />
 
       {/* Información del carrito en footer */}
       {cartState.itemCount > 0 && (

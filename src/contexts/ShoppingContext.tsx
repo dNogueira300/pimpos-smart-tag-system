@@ -360,13 +360,21 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
 
   // Determinar si se debe mostrar el modal de presupuesto
   const shouldShowBudgetModal = (): boolean => {
+    // Si la sesión expiró, siempre mostrar el modal
+    if (isSessionExpired()) {
+      return true;
+    }
+
     // Si ya está configurado y la sesión NO ha expirado, no mostrar
-    if (budgetConfigured && !isSessionExpired()) {
+    if (budgetConfigured) {
       return false;
     }
 
-    // Si es el primer escaneo (no hay items y no está configurado) o la sesión expiró
-    return !budgetConfigured || isSessionExpired();
+    // Si es el primer escaneo (no hay items y no está configurado), mostrar
+    // IMPORTANTE: Si hay items en el carrito, significa que ya se pasó por el flujo
+    // de presupuesto (se configuró o se omitió), así que no mostrar nuevamente
+    const hasItems = cartState.items.length > 0;
+    return !budgetConfigured && !hasItems;
   };
 
   const value: ShoppingContextType = {
