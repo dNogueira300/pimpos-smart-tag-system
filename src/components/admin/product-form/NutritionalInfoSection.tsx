@@ -205,7 +205,7 @@ export default function NutritionalInfoSection({
                 </strong>
               </li>
               <li>
-                • Los campos marcados con ⚠️ se usan para calcular octágonos de
+                • Los campos marcados con [!] se usan para calcular octágonos de
                 advertencia
               </li>
               <li>
@@ -268,7 +268,7 @@ export default function NutritionalInfoSection({
                         className="ml-1 text-red-500"
                         title="Campo usado para octágonos"
                       >
-                        ⚠️
+                        [!]
                       </span>
                     )}
                     {field.unit && (

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Iniciando seed de la base de datos...");
+  console.log("Iniciando seed de la base de datos...");
 
   // Crear usuario administrador por defecto
   const hashedPassword = await bcrypt.hash("admin123", 12);
@@ -21,7 +21,7 @@ async function main() {
     },
   });
 
-  console.log("👤 Usuario administrador creado:", admin.username);
+  console.log("Usuario administrador creado:", admin.username);
 
   // Crear categorías por defecto
   const categories = [
@@ -71,7 +71,7 @@ async function main() {
     });
   }
 
-  console.log("📦 Categorías creadas:", categories.length);
+  console.log("Categorías creadas:", categories.length);
 
   // Crear configuraciones del sistema
   const systemConfigs = [
@@ -140,12 +140,12 @@ async function main() {
     });
   }
 
-  console.log("⚙️ Configuraciones del sistema creadas:", systemConfigs.length);
+  console.log("Configuraciones del sistema creadas:", systemConfigs.length);
 
   // --- SECCIÓN DE PRODUCTOS DE EJEMPLO ELIMINADA ---
 
-  console.log("✅ Seed completado exitosamente!");
-  console.log("\n📋 Credenciales de acceso:");
+  console.log("Seed completado exitosamente!");
+  console.log("\nCredenciales de acceso:");
   console.log("Usuario: admin");
   console.log("Contraseña: admin123");
   console.log("URL: http://localhost:3000/admin/login");
@@ -156,7 +156,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error("❌ Error en el seed:", e);
+    console.error("Error en el seed:", e);
     await prisma.$disconnect();
     process.exit(1);
   });

@@ -159,7 +159,7 @@ export default function ClientWelcomePage() {
             {/* Información de ayuda */}
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
               <p className="text-amber-900 text-xs text-center">
-                💡 Te ayudaremos a mantener tu presupuesto. Los avisos aparecerán al escanear productos.
+                Tip: Te ayudaremos a mantener tu presupuesto. Los avisos aparecerán al escanear productos.
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function ClientWelcomePage() {
 
         {/* Footer */}
         <p className="text-center text-gray-600 text-sm mt-6">
-          Desarrollado con amor por Pimpos 🍞
+          Desarrollado con amor por Pimpos
         </p>
       </div>
     </div>
