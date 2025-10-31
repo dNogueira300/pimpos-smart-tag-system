@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import {
   FolderPlus,
   Plus,
@@ -12,7 +11,6 @@ import {
   Search,
   X,
   Check,
-  AlertTriangle,
 } from "lucide-react";
 import { Category } from "@/types/product";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -65,13 +63,16 @@ export default function CategoriesManagementPage() {
 
   // Estado para modal de confirmación de eliminación
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<CategoryWithCount | null>(null);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<CategoryWithCount | null>(null);
 
   // Cargar categorías
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const url = `/api/admin/categories${showInactive ? "?includeInactive=true" : ""}`;
+      const url = `/api/admin/categories${
+        showInactive ? "?includeInactive=true" : ""
+      }`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -87,7 +88,7 @@ export default function CategoriesManagementPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, [showInactive]);
+  });
 
   // Filtrar categorías por búsqueda
   const filteredCategories = categories.filter((category) =>
@@ -174,9 +175,12 @@ export default function CategoriesManagementPage() {
     if (!categoryToDelete) return;
 
     try {
-      const response = await fetch(`/api/admin/categories/${categoryToDelete.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/admin/categories/${categoryToDelete.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       const data = await response.json();
 
@@ -415,12 +419,10 @@ export default function CategoriesManagementPage() {
                     {category.isActive ? (
                       <button
                         onClick={() => handleDeleteClick(category)}
-                        disabled={
-                          category._count?.products && category._count.products > 0
-                        }
+                        disabled={(category._count?.products ?? 0) > 0}
                         className="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                         title={
-                          category._count?.products && category._count.products > 0
+                          (category._count?.products ?? 0) > 0
                             ? "No se puede desactivar: tiene productos asociados"
                             : "Desactivar categoría"
                         }
@@ -512,7 +514,10 @@ export default function CategoriesManagementPage() {
                     <textarea
                       value={modalData.description}
                       onChange={(e) =>
-                        setModalData({ ...modalData, description: e.target.value })
+                        setModalData({
+                          ...modalData,
+                          description: e.target.value,
+                        })
                       }
                       placeholder="Descripción de la categoría..."
                       rows={3}
