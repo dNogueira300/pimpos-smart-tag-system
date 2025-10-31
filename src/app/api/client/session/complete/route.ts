@@ -125,6 +125,16 @@ export async function POST(request: NextRequest) {
     console.log("Número de ticket generado:", ticketNumber);
 
     // Crear el ticket con los detalles de la compra
+    console.log("Intentando crear ticket con datos:", {
+      ticketNumber,
+      sessionId,
+      totalAmount: totalSpent,
+      budget,
+      itemCount,
+      itemsCount: items.length,
+      budgetExceeded: budget !== null ? totalSpent > budget : false,
+    });
+
     const ticket = await prisma.ticket.create({
       data: {
         ticketNumber,
@@ -137,7 +147,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("Ticket creado exitosamente:", ticket.ticketNumber);
+    console.log("✅ Ticket creado exitosamente en la BD:", {
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      createdAt: ticket.createdAt,
+    });
 
     return NextResponse.json(
       {
