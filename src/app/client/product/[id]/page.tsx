@@ -53,13 +53,13 @@ export default function ProductPage({ params }: ProductPageProps) {
       const urlParams = new URLSearchParams(window.location.search);
       const fromQR = urlParams.get("from") === "qr";
 
-      if (fromQR && shouldShowBudgetModal()) {
-        // Es un escaneo y debe mostrar el modal de presupuesto
-        // Resetear la configuración para forzar la redirección
+      // Solo resetear si es un nuevo escaneo Y (la sesión expiró O no hay configuración previa)
+      if (fromQR && shouldShowBudgetModal() && (isSessionExpired() || !budgetConfigured)) {
+        // Es un escaneo nuevo y debe mostrar el modal de presupuesto
         resetBudgetConfig();
       }
     }
-  }, [resetBudgetConfig, shouldShowBudgetModal]);
+  }, [resetBudgetConfig, shouldShowBudgetModal, isSessionExpired, budgetConfigured]);
 
   // Redirigir a configuración de presupuesto si debe mostrarse
   useEffect(() => {

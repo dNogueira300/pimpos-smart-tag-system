@@ -21,13 +21,15 @@ export default function BudgetPage({
     const budget = parseFloat(budgetValue);
     if (budget > 0) {
       setBudget(budget);
-      router.push(`/client/product/${productId}`);
+      // Redirigir SIN el parámetro from=qr para evitar loops
+      router.replace(`/client/product/${productId}`);
     }
   };
 
   const handleSkip = () => {
     markBudgetAsConfigured();
-    router.push(`/client/product/${productId}`);
+    // Redirigir SIN el parámetro from=qr para evitar loops
+    router.replace(`/client/product/${productId}`);
   };
 
   return (

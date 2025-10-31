@@ -43,7 +43,7 @@ const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hora en milisegundos
 export function ShoppingProvider({ children }: { children: React.ReactNode }) {
   const [ticketNumber, setTicketNumber] = useState<string | null>(null);
 
-  const [sessionId] = useState(() => {
+  const [sessionId, setSessionId] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -380,6 +380,11 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       // Resetear estado completo incluyendo budgetConfigured
       setCartState(getInitialState());
       setBudgetConfigured(false);
+
+      // IMPORTANTE: Generar un nuevo sessionId para la próxima sesión
+      const newSessionId = uuidv4();
+      setSessionId(newSessionId);
+      console.log("Nuevo sessionId generado:", newSessionId);
 
       return generatedTicketNumber;
     } catch (error) {
