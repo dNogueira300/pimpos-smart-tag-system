@@ -47,9 +47,10 @@ export async function generateSingleProductQRPDF(
   const nameY = qrY + QR_SIZE_MM + 10;
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  const productName = product.name.length > 50
-    ? product.name.substring(0, 47) + "..."
-    : product.name;
+  const productName =
+    product.name.length > 50
+      ? product.name.substring(0, 47) + "..."
+      : product.name;
   const nameWidth = doc.getTextWidth(productName);
   const nameX = (pageWidth - nameWidth) / 2;
   doc.text(productName, nameX, nameY);
@@ -94,7 +95,8 @@ export async function generateSingleProductQRPDF(
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.setFont("helvetica", "italic");
-  const instructionText = "Escanea el código QR o acerca un chip NFC para ver la información del producto";
+  const instructionText =
+    "Escanea el código QR o acerca un chip NFC para ver la información del producto";
   const instructionWidth = doc.getTextWidth(instructionText);
   const instructionX = (pageWidth - instructionWidth) / 2;
   doc.text(instructionText, instructionX, footerY);
@@ -151,9 +153,10 @@ export async function generateMultipleProductsQRPDF(
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    const productName = product.name.length > 50
-      ? product.name.substring(0, 47) + "..."
-      : product.name;
+    const productName =
+      product.name.length > 50
+        ? product.name.substring(0, 47) + "..."
+        : product.name;
     const nameWidth = doc.getTextWidth(productName);
     const nameX = (pageWidth - nameWidth) / 2;
     doc.text(productName, nameX, nameY);
@@ -197,7 +200,8 @@ export async function generateMultipleProductsQRPDF(
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.setFont("helvetica", "italic");
-    const instructionText = "Escanea el código QR o acerca un chip NFC para ver la información del producto";
+    const instructionText =
+      "Escanea el código QR o acerca un chip NFC para ver la información del producto";
     const instructionWidth = doc.getTextWidth(instructionText);
     const instructionX = (pageWidth - instructionWidth) / 2;
     doc.text(instructionText, instructionX, footerY);
@@ -237,8 +241,8 @@ export async function generateGridQRPDF(
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 10;
 
-  const availableWidth = pageWidth - (2 * margin);
-  const availableHeight = pageHeight - (2 * margin);
+  const availableWidth = pageWidth - 2 * margin;
+  const availableHeight = pageHeight - 2 * margin;
 
   const cellWidth = availableWidth / columns;
   const cellHeight = availableHeight / rows;
@@ -246,7 +250,6 @@ export async function generateGridQRPDF(
   const qrSize = Math.min(QR_SIZE_MM, cellWidth - 10, cellHeight - 30);
 
   const itemsPerPage = columns * rows;
-  let currentPage = 0;
 
   for (let i = 0; i < products.length; i++) {
     const product = products[i];
@@ -255,14 +258,13 @@ export async function generateGridQRPDF(
     // Si es el inicio de una nueva página (excepto la primera)
     if (positionInPage === 0 && i > 0) {
       doc.addPage();
-      currentPage++;
     }
 
     const row = Math.floor(positionInPage / columns);
     const col = positionInPage % columns;
 
-    const cellX = margin + (col * cellWidth);
-    const cellY = margin + (row * cellHeight);
+    const cellX = margin + col * cellWidth;
+    const cellY = margin + row * cellHeight;
 
     // Generar código QR como imagen
     const productUrl = `${DOMAIN}/client/product/${product.id}`;
@@ -286,9 +288,10 @@ export async function generateGridQRPDF(
     doc.setTextColor(0, 0, 0);
 
     const maxNameLength = 30;
-    const productName = product.name.length > maxNameLength
-      ? product.name.substring(0, maxNameLength - 3) + "..."
-      : product.name;
+    const productName =
+      product.name.length > maxNameLength
+        ? product.name.substring(0, maxNameLength - 3) + "..."
+        : product.name;
 
     const nameWidth = doc.getTextWidth(productName);
     const nameX = cellX + (cellWidth - nameWidth) / 2;
@@ -305,7 +308,7 @@ export async function generateGridQRPDF(
     doc.text(nfcText, nfcX, nfcY);
 
     // Agregar enlace NFC como texto copiable
-    const productUrl = `${DOMAIN}/client/product/${product.id}`;
+    // --- LÍNEA 308 (REDUNDANTE) ELIMINADA ---
     const urlY = nfcY + 4;
     doc.setFontSize(5);
     doc.setTextColor(0, 0, 255);
@@ -313,9 +316,10 @@ export async function generateGridQRPDF(
 
     // Truncar URL si es muy larga
     const maxUrlLength = 35;
-    const displayUrl = productUrl.length > maxUrlLength
-      ? productUrl.substring(0, maxUrlLength - 3) + "..."
-      : productUrl;
+    const displayUrl =
+      productUrl.length > maxUrlLength
+        ? productUrl.substring(0, maxUrlLength - 3) + "..."
+        : productUrl;
 
     const urlWidth = doc.getTextWidth(displayUrl);
     const urlX = cellX + (cellWidth - urlWidth) / 2;
