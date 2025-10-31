@@ -37,13 +37,22 @@ export default function ThankYouPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedTicket = localStorage.getItem("pimpos_last_ticket");
+      console.log("Ticket almacenado en localStorage:", storedTicket);
+
       if (storedTicket) {
         try {
           const parsed = JSON.parse(storedTicket);
+          console.log("Datos del ticket parseados:", parsed);
           setTicketData(parsed);
+
+          if (!parsed.ticketNumber) {
+            console.error("ADVERTENCIA: El ticket no tiene número de ticket");
+          }
         } catch (error) {
           console.error("Error al cargar ticket:", error);
         }
+      } else {
+        console.error("No se encontró ticket en localStorage");
       }
     }
   }, []);

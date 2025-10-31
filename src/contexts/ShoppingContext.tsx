@@ -341,6 +341,12 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       const generatedTicketNumber = data.ticketNumber;
 
+      console.log("Número de ticket recibido del servidor:", generatedTicketNumber);
+
+      if (!generatedTicketNumber) {
+        throw new Error("No se recibió el número de ticket del servidor");
+      }
+
       // Guardar el ticketNumber y los datos del carrito para la descarga
       if (typeof window !== "undefined") {
         const ticketData = {
@@ -354,10 +360,12 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date().toISOString(),
         };
         localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(ticketData));
+        console.log("Ticket guardado en localStorage:", ticketData);
       }
 
       // Actualizar estado del ticketNumber
       setTicketNumber(generatedTicketNumber);
+      console.log("Estado de ticketNumber actualizado:", generatedTicketNumber);
 
       // Limpiar localStorage de sesión
       if (typeof window !== "undefined") {
