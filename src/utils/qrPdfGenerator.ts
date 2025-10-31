@@ -57,9 +57,9 @@ export async function generateSingleProductQRPDF(
   // Agregar texto "NFC" como indicador (centrado)
   const nfcY = nameY + 10;
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(100, 100, 100);
-  const nfcText = "📱 NFC Compatible";
+  const nfcText = "NFC Compatible";
   const nfcWidth = doc.getTextWidth(nfcText);
   const nfcX = (pageWidth - nfcWidth) / 2;
   doc.text(nfcText, nfcX, nfcY);
@@ -161,9 +161,9 @@ export async function generateMultipleProductsQRPDF(
     // Agregar texto "NFC" como indicador (centrado)
     const nfcY = nameY + 10;
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(100, 100, 100);
-    const nfcText = "📱 NFC Compatible";
+    const nfcText = "NFC Compatible";
     const nfcWidth = doc.getTextWidth(nfcText);
     const nfcX = (pageWidth - nfcWidth) / 2;
     doc.text(nfcText, nfcX, nfcY);
@@ -294,15 +294,32 @@ export async function generateGridQRPDF(
     const nameX = cellX + (cellWidth - nameWidth) / 2;
     doc.text(productName, nameX, nameY);
 
-    // Agregar icono NFC y código
+    // Agregar texto NFC
     const nfcY = nameY + 4;
     doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(100, 100, 100);
-    const nfcText = "📱 NFC";
+    const nfcText = "NFC";
     const nfcWidth = doc.getTextWidth(nfcText);
     const nfcX = cellX + (cellWidth - nfcWidth) / 2;
     doc.text(nfcText, nfcX, nfcY);
+
+    // Agregar enlace NFC como texto copiable
+    const productUrl = `${DOMAIN}/client/product/${product.id}`;
+    const urlY = nfcY + 4;
+    doc.setFontSize(5);
+    doc.setTextColor(0, 0, 255);
+    doc.setFont("helvetica", "normal");
+
+    // Truncar URL si es muy larga
+    const maxUrlLength = 35;
+    const displayUrl = productUrl.length > maxUrlLength
+      ? productUrl.substring(0, maxUrlLength - 3) + "..."
+      : productUrl;
+
+    const urlWidth = doc.getTextWidth(displayUrl);
+    const urlX = cellX + (cellWidth - urlWidth) / 2;
+    doc.textWithLink(displayUrl, urlX, urlY, { url: productUrl });
   }
 
   // Descargar el PDF

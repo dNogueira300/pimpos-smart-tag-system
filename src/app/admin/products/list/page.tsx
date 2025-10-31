@@ -161,7 +161,7 @@ export default function ProductsListPage() {
     }
   };
 
-  // Generar QR para productos seleccionados
+  // Generar QR para productos seleccionados (formato grid por defecto)
   const handleGenerateSelectedQR = async () => {
     if (selectedProducts.size === 0) {
       alert("Por favor selecciona al menos un producto");
@@ -181,7 +181,8 @@ export default function ProductsListPage() {
       if (selectedProductsData.length === 1) {
         await generateSingleProductQRPDF(selectedProductsData[0]);
       } else {
-        await generateMultipleProductsQRPDF(selectedProductsData);
+        // Usar grid por defecto para múltiples productos
+        await generateGridQRPDF(selectedProductsData, 2, 3);
       }
 
       // Limpiar selección
@@ -194,11 +195,11 @@ export default function ProductsListPage() {
     }
   };
 
-  // Generar QR para todos los productos (con confirmación)
+  // Generar QR para todos los productos en formato grid (con confirmación)
   const handleGenerateAllQR = async () => {
     if (
       !confirm(
-        `¿Estás seguro de generar códigos QR para todos los ${pagination.total} productos? Esto puede tardar un momento.`
+        `¿Estás seguro de generar códigos QR para todos los ${pagination.total} productos? Se generará un PDF en formato grid (6 por página).`
       )
     ) {
       return;
@@ -216,7 +217,8 @@ export default function ProductsListPage() {
           code: p.code,
         }));
 
-        await generateMultipleProductsQRPDF(allProductsData);
+        // Usar grid por defecto para todos los productos
+        await generateGridQRPDF(allProductsData, 2, 3);
       } else {
         throw new Error("Error al obtener productos");
       }
@@ -228,10 +230,10 @@ export default function ProductsListPage() {
     }
   };
 
-  // Generar QR en formato grid (varios por página)
-  const handleGenerateGridQR = async () => {
+  // Generar QR en formato uno por página (útil para impresiones individuales)
+  const handleGenerateOnePerPage = async () => {
     if (selectedProducts.size === 0) {
-      alert("Por favor selecciona al menos un producto para el formato grid");
+      alert("Por favor selecciona al menos un producto");
       return;
     }
 
@@ -245,13 +247,14 @@ export default function ProductsListPage() {
           code: p.code,
         }));
 
-      await generateGridQRPDF(selectedProductsData, 2, 3); // 2 columnas x 3 filas
+      // Generar un producto por página (formato grande)
+      await generateMultipleProductsQRPDF(selectedProductsData);
 
       // Limpiar selección
       setSelectedProducts(new Set());
     } catch (error) {
       console.error("Error al generar QR:", error);
-      alert("Error al generar los códigos QR en formato grid");
+      alert("Error al generar los códigos QR");
     } finally {
       setIsGeneratingQR(false);
     }
@@ -745,12 +748,12 @@ export default function ProductsListPage() {
                 onClick={handleGenerateSelectedQR}
                 disabled={selectedProducts.size === 0 || isGeneratingQR}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-purple-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Generar QR para productos seleccionados"
+                title="Generar QR Grid para productos seleccionados (6 por página)"
               >
                 <QrCode className="h-4 w-4" />
                 {isGeneratingQR
                   ? "Generando..."
-                  : `QR Seleccionados ${
+                  : `QR Grid ${
                       selectedProducts.size > 0
                         ? `(${selectedProducts.size})`
                         : ""
@@ -761,10 +764,10 @@ export default function ProductsListPage() {
                 onClick={handleGenerateAllQR}
                 disabled={isGeneratingQR}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/80 backdrop-blur-md text-white font-medium rounded-xl hover:bg-indigo-600/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Generar QR para todos los productos"
+                title="Generar QR Grid para todos los productos (6 por página)"
               >
                 <QrCode className="h-4 w-4" />
-                QR Todos
+                QR Todos (Grid)
               </button>
 
               <Link
@@ -799,17 +802,19 @@ export default function ProductsListPage() {
                   onClick={handleGenerateSelectedQR}
                   disabled={isGeneratingQR}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  <QrCode className="h-4 w-4" />
-                  Generar QR
-                </button>
-                <button
-                  onClick={handleGenerateGridQR}
-                  disabled={isGeneratingQR}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  title="Generar QR en formato grid (6 por página)"
                 >
                   <QrCode className="h-4 w-4" />
                   QR Grid
+                </button>
+                <button
+                  onClick={handleGenerateOnePerPage}
+                  disabled={isGeneratingQR}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  title="Generar un QR por página (formato grande)"
+                >
+                  <QrCode className="h-4 w-4" />
+                  QR 1x Página
                 </button>
                 <button
                   onClick={() => setSelectedProducts(new Set())}
