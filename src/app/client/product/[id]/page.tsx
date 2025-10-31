@@ -16,6 +16,7 @@ import { Product } from "@/types/product";
 import { useShopping } from "@/contexts/ShoppingContext";
 import BudgetBar from "@/components/client/BudgetBar";
 import Modal, { ModalActions } from "@/components/client/Modal";
+import QRScanner from "@/components/client/QRScanner";
 
 interface ProductPageProps {
   params: Promise<{
@@ -26,8 +27,15 @@ interface ProductPageProps {
 export default function ProductPage({ params }: ProductPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { addToCart, cartState, getItemQuantity, budgetConfigured, resetBudgetConfig } =
-    useShopping();
+  const {
+    addToCart,
+    cartState,
+    getItemQuantity,
+    budgetConfigured,
+    resetBudgetConfig,
+    shouldShowBudgetModal,
+    isSessionExpired
+  } = useShopping();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,26 +45,30 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [showIngredients, setShowIngredients] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
-  // Detectar si viene de un QR y resetear presupuesto
+  // Detectar si viene de un QR y verificar si debe mostrar presupuesto
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const fromQR = urlParams.get("from") === "qr";
 
       if (fromQR) {
-        // Resetear configuración de presupuesto para que pregunte de nuevo
-        resetBudgetConfig();
+        // Solo resetear si debe mostrar el modal (primera vez o sesión expirada)
+        if (shouldShowBudgetModal()) {
+          resetBudgetConfig();
+        }
       }
     }
-  }, [resetBudgetConfig]);
+  }, [resetBudgetConfig, shouldShowBudgetModal]);
 
-  // Redirigir a configuración de presupuesto si no está configurado
+  // Redirigir a configuración de presupuesto si debe mostrarse
   useEffect(() => {
-    if (!budgetConfigured) {
+    // Solo redirigir si realmente debe mostrar el modal de presupuesto
+    if (shouldShowBudgetModal() && !budgetConfigured) {
       router.replace(`/client/budget/${id}`);
     }
-  }, [budgetConfigured, id, router]);
+  }, [budgetConfigured, id, router, shouldShowBudgetModal]);
 
   // Cargar producto
   useEffect(() => {
@@ -107,12 +119,40 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleContinueShopping = () => {
     setShowSuccessModal(false);
-    router.push("/client/scan");
+    setShowScanner(true);
   };
 
   const handleGoToCart = () => {
     setShowSuccessModal(false);
     router.push("/client/cart");
+  };
+
+  const handleQRScanSuccess = (decodedText: string) => {
+    try {
+      // El QR puede contener:
+      // 1. Una URL completa: https://pimpos-system.vercel.app/client/product/123?from=qr
+      // 2. Solo el ID del producto: 123
+
+      let productId: string;
+
+      // Verificar si es una URL
+      if (decodedText.includes("http") || decodedText.includes("/")) {
+        const url = new URL(decodedText);
+        const pathParts = url.pathname.split("/");
+        // El ID está en la última parte del path
+        productId = pathParts[pathParts.length - 1];
+      } else {
+        // Asumir que es solo el ID del producto
+        productId = decodedText;
+      }
+
+      // Redirigir al producto con el parámetro from=qr
+      router.push(`/client/product/${productId}?from=qr`);
+    } catch (error) {
+      console.error("Error al procesar QR:", error);
+      // Si hay error, intentar usar el texto tal cual
+      router.push(`/client/product/${decodedText}?from=qr`);
+    }
   };
 
   const handleAddDespiteWarning = () => {
@@ -584,6 +624,13 @@ export default function ProductPage({ params }: ProductPageProps) {
           </ModalActions>
         </div>
       </Modal>
+
+      {/* QR Scanner */}
+      <QRScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { useShopping } from "@/contexts/ShoppingContext";
 import { useToast } from "@/contexts/ToastContext";
 import BudgetBar from "@/components/client/BudgetBar";
 import Modal, { ModalActions } from "@/components/client/Modal";
+import QRScanner from "@/components/client/QRScanner";
 
 export default function CartPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function CartPage() {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const [isCompletingSession, setIsCompletingSession] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const handleDeleteProduct = (productId: string) => {
     setProductToDelete(productId);
@@ -70,6 +72,34 @@ export default function CartPage() {
       showToast("Error al finalizar la compra", "error");
     } finally {
       setIsCompletingSession(false);
+    }
+  };
+
+  const handleQRScanSuccess = (decodedText: string) => {
+    try {
+      // El QR puede contener:
+      // 1. Una URL completa: https://pimpos-system.vercel.app/client/product/123?from=qr
+      // 2. Solo el ID del producto: 123
+
+      let productId: string;
+
+      // Verificar si es una URL
+      if (decodedText.includes("http") || decodedText.includes("/")) {
+        const url = new URL(decodedText);
+        const pathParts = url.pathname.split("/");
+        // El ID está en la última parte del path
+        productId = pathParts[pathParts.length - 1];
+      } else {
+        // Asumir que es solo el ID del producto
+        productId = decodedText;
+      }
+
+      // Redirigir al producto con el parámetro from=qr
+      router.push(`/client/product/${productId}?from=qr`);
+    } catch (error) {
+      console.error("Error al procesar QR:", error);
+      // Si hay error, intentar usar el texto tal cual
+      router.push(`/client/product/${decodedText}?from=qr`);
     }
   };
 
@@ -114,13 +144,13 @@ export default function CartPage() {
               <p className="text-gray-600 mb-8">
                 Escanea productos para comenzar tu compra
               </p>
-              <Link
-                href="/client/scan"
+              <button
+                onClick={() => setShowScanner(true)}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E37836] to-[#B55424] text-white font-bold px-8 py-4 rounded-xl hover:from-[#B55424] hover:to-[#8B5A3C] transition-all shadow-lg"
               >
                 <Scan className="h-5 w-5" />
                 Escanear producto
-              </Link>
+              </button>
             </div>
           ) : (
             /* Carrito con productos */
@@ -211,13 +241,13 @@ export default function CartPage() {
               </div>
 
               {/* Botón para escanear otro producto */}
-              <Link
-                href="/client/scan"
+              <button
+                onClick={() => setShowScanner(true)}
                 className="w-full bg-yellow-400 text-yellow-900 font-bold py-4 rounded-xl hover:bg-yellow-500 transition-all shadow-lg flex items-center justify-center gap-2"
               >
                 <Scan className="h-5 w-5" />
                 Escanear otro producto
-              </Link>
+              </button>
 
               {/* Resumen de compra */}
               <div className="bg-white rounded-3xl shadow-2xl border-4 border-amber-200 p-6">
@@ -356,6 +386,13 @@ export default function CartPage() {
           </button>
         </ModalActions>
       </Modal>
+
+      {/* QR Scanner */}
+      <QRScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+      />
     </>
   );
 }
