@@ -357,6 +357,23 @@ export default function ProductsDashboard() {
             </Link>
 
             <Link
+              href="/admin/categories"
+              className="flex items-center p-4 rounded-2xl border-2 border-indigo-200 hover:bg-indigo-50 transition-all duration-200 hover:shadow-md cursor-pointer group"
+            >
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg group-hover:scale-110 transition-transform">
+                <Settings className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900 text-lg">
+                  Gestionar Categorías
+                </div>
+                <div className="text-gray-600">
+                  Ver, editar y desactivar categorías
+                </div>
+              </div>
+            </Link>
+
+            <Link
               href="/admin/products/list"
               className="flex items-center p-4 rounded-2xl border-2 border-amber-200 hover:bg-amber-50 transition-all duration-200 hover:shadow-md cursor-pointer group"
             >

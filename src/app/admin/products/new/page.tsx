@@ -7,11 +7,13 @@ import Link from "next/link";
 import { ArrowLeft, Package, Info, CheckCircle } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 import { ProductFormData } from "@/types/product";
+import { useToast } from "@/components/ToastContainer";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const { showError } = useToast();
 
   const handleSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
@@ -50,8 +52,9 @@ export default function NewProductPage() {
       }, 2000);
     } catch (error) {
       console.error("Error al crear producto:", error);
-      alert(
-        error instanceof Error ? error.message : "Error al crear el producto"
+      showError(
+        "Error al crear producto",
+        error instanceof Error ? error.message : "Ocurrió un error al crear el producto"
       );
     } finally {
       setIsSubmitting(false);

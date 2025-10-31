@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { ProductFormData } from "@/types/product";
+import { useToast } from "@/components/ToastContainer";
 
 interface ImageUploadSectionProps {
   formData: ProductFormData;
@@ -30,17 +31,18 @@ export default function ImageUploadSection({
     formData.imageUrl || null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showError } = useToast();
 
   const handleFileSelect = (file: File) => {
     // Validar tipo de archivo
     if (!file.type.startsWith("image/")) {
-      alert("Por favor selecciona un archivo de imagen válido");
+      showError("Archivo inválido", "Por favor selecciona un archivo de imagen válido");
       return;
     }
 
     // Validar tamaño (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen no puede ser mayor a 5MB");
+      showError("Archivo muy grande", "La imagen no puede ser mayor a 5MB");
       return;
     }
 
