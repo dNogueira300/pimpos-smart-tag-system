@@ -464,103 +464,109 @@ export default function CartPage() {
       {/* Ticket para descarga (invisible hasta que se genera) */}
       <div
         ref={ticketRef}
-        style={{ display: "none" }}
-        className="fixed top-0 left-0 w-[400px] bg-white p-8"
+        style={{ display: "none", backgroundColor: "#FFFFFF" }}
       >
-        {/* Header del ticket */}
-        <div className="text-center mb-6 pb-4 border-b-2 border-gray-300">
-          <h1 className="text-3xl font-bold text-[#E37836] mb-2">
-            SmartTag Pimpos
-          </h1>
-          <p className="text-sm text-gray-600">
-            Ticket de Compra
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {new Date().toLocaleDateString("es-PE", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-
-        {/* Lista de productos */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">
-            Productos ({cartState.itemCount})
-          </h2>
-          <div className="space-y-3">
-            {cartState.items.map((item, index) => (
-              <div key={item.product.id} className="pb-3 border-b border-gray-200">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-semibold text-gray-900 text-sm flex-1">
-                    {index + 1}. {item.product.name}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>
-                    {item.quantity} x S/. {item.unitPrice.toFixed(2)}
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    S/. {item.totalPrice.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Resumen */}
-        <div className="border-t-2 border-gray-300 pt-4 mb-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Subtotal:</span>
-            <span className="font-semibold text-gray-900">
-              S/. {cartState.totalSpent.toFixed(2)}
-            </span>
+        <div style={{ width: "400px", padding: "32px", backgroundColor: "#FFFFFF" }}>
+          {/* Header del ticket */}
+          <div style={{ textAlign: "center", marginBottom: "24px", paddingBottom: "16px", borderBottom: "2px solid #D1D5DB" }}>
+            <h1 style={{ fontSize: "30px", fontWeight: "bold", color: "#E37836", marginBottom: "8px" }}>
+              SmartTag Pimpos
+            </h1>
+            <p style={{ fontSize: "14px", color: "#4B5563" }}>
+              Ticket de Compra
+            </p>
+            <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>
+              {new Date().toLocaleDateString("es-PE", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
           </div>
 
-          {cartState.budget !== null && (
-            <>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Presupuesto:</span>
-                <span className="font-semibold text-gray-900">
-                  S/. {cartState.budget.toFixed(2)}
-                </span>
-              </div>
-              <div
-                className={`flex justify-between text-sm font-bold ${
-                  cartState.budgetExceeded ? "text-red-600" : "text-green-600"
-                }`}
-              >
-                <span>
-                  {cartState.budgetExceeded ? "Exceso:" : "Disponible:"}
-                </span>
-                <span>
-                  S/.{" "}
-                  {cartState.budgetExceeded
-                    ? (cartState.totalSpent - cartState.budget).toFixed(2)
-                    : cartState.budgetRemaining?.toFixed(2)}
-                </span>
-              </div>
-            </>
-          )}
+          {/* Lista de productos */}
+          <div style={{ marginBottom: "24px" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#111827", marginBottom: "12px" }}>
+              Productos ({cartState.itemCount})
+            </h2>
+            <div>
+              {cartState.items.map((item, index) => (
+                <div key={item.product.id} style={{ paddingBottom: "12px", borderBottom: "1px solid #E5E7EB", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
+                    <span style={{ fontWeight: "600", color: "#111827", fontSize: "14px", flex: 1 }}>
+                      {index + 1}. {item.product.name}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#4B5563" }}>
+                    <span>
+                      {item.quantity} x S/. {item.unitPrice.toFixed(2)}
+                    </span>
+                    <span style={{ fontWeight: "bold", color: "#111827" }}>
+                      S/. {item.totalPrice.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <div className="border-t-2 border-gray-300 pt-3 mt-3">
-            <div className="flex justify-between">
-              <span className="text-xl font-bold text-gray-900">TOTAL</span>
-              <span className="text-2xl font-bold text-[#B55424]">
+          {/* Resumen */}
+          <div style={{ borderTop: "2px solid #D1D5DB", paddingTop: "16px", marginBottom: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "8px" }}>
+              <span style={{ color: "#4B5563" }}>Subtotal:</span>
+              <span style={{ fontWeight: "600", color: "#111827" }}>
                 S/. {cartState.totalSpent.toFixed(2)}
               </span>
             </div>
-          </div>
-        </div>
 
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-500 border-t pt-4 mt-4">
-          <p className="mb-1">¡Gracias por tu compra!</p>
-          <p>SmartTag Pimpos - Tu compra inteligente</p>
+            {cartState.budget !== null && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", marginBottom: "8px" }}>
+                  <span style={{ color: "#4B5563" }}>Presupuesto:</span>
+                  <span style={{ fontWeight: "600", color: "#111827" }}>
+                    S/. {cartState.budget.toFixed(2)}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    color: cartState.budgetExceeded ? "#DC2626" : "#059669",
+                    marginBottom: "8px"
+                  }}
+                >
+                  <span>
+                    {cartState.budgetExceeded ? "Exceso:" : "Disponible:"}
+                  </span>
+                  <span>
+                    S/.{" "}
+                    {cartState.budgetExceeded
+                      ? (cartState.totalSpent - cartState.budget).toFixed(2)
+                      : cartState.budgetRemaining?.toFixed(2)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            <div style={{ borderTop: "2px solid #D1D5DB", paddingTop: "12px", marginTop: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "20px", fontWeight: "bold", color: "#111827" }}>TOTAL</span>
+                <span style={{ fontSize: "24px", fontWeight: "bold", color: "#B55424" }}>
+                  S/. {cartState.totalSpent.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ textAlign: "center", fontSize: "12px", color: "#6B7280", borderTop: "1px solid #E5E7EB", paddingTop: "16px", marginTop: "16px" }}>
+            <p style={{ marginBottom: "4px" }}>¡Gracias por tu compra!</p>
+            <p>SmartTag Pimpos - Tu compra inteligente</p>
+          </div>
         </div>
       </div>
     </>

@@ -20,32 +20,62 @@ export default function QRScanner({
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isInitializingRef = useRef(false);
   const qrCodeRegionId = "qr-reader";
 
   useEffect(() => {
-    if (isOpen && !isScanning) {
+    if (isOpen && !isScanning && !isInitializingRef.current) {
       startScanner();
     }
 
     return () => {
-      stopScanner();
+      // Cleanup al desmontar
+      if (scannerRef.current) {
+        stopScanner();
+      }
     };
   }, [isOpen]);
 
   const startScanner = async () => {
+    // Prevenir múltiples inicializaciones simultáneas
+    if (isInitializingRef.current) {
+      return;
+    }
+
+    isInitializingRef.current = true;
+
     try {
       setError(null);
 
-      // Crear instancia del escáner
+      // Si ya existe una instancia en ejecución, detenerla primero
+      if (scannerRef.current) {
+        try {
+          const state = await scannerRef.current.getState();
+          if (state === 2) { // SCANNING state
+            await scannerRef.current.stop();
+          }
+        } catch (e) {
+          // Si hay error obteniendo el estado, intentar limpiar
+          try {
+            await scannerRef.current.clear();
+          } catch (clearError) {
+            // Ignorar errores de limpieza
+          }
+          scannerRef.current = null;
+        }
+      }
+
+      // Crear nueva instancia si no existe
       if (!scannerRef.current) {
         scannerRef.current = new Html5Qrcode(qrCodeRegionId);
       }
 
-      // Configuración del escáner
+      // Configuración del escáner optimizada
       const config = {
         fps: 10, // Frames por segundo
         qrbox: { width: 250, height: 250 }, // Área de escaneo
         aspectRatio: 1.0,
+        disableFlip: false, // Permitir flip para mejor detección
       };
 
       // Iniciar el escáner
@@ -69,18 +99,32 @@ export default function QRScanner({
         "No se pudo acceder a la cámara. Por favor, verifica los permisos."
       );
       setIsScanning(false);
+    } finally {
+      isInitializingRef.current = false;
     }
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current && isScanning) {
-      try {
+    if (!scannerRef.current) {
+      return;
+    }
+
+    try {
+      const state = await scannerRef.current.getState();
+      if (state === 2) { // SCANNING state
         await scannerRef.current.stop();
-        await scannerRef.current.clear();
-        setIsScanning(false);
-      } catch (err) {
-        console.error("Error al detener escáner:", err);
       }
+      setIsScanning(false);
+    } catch (err) {
+      console.error("Error al detener escáner:", err);
+      // Intentar limpiar de todas formas
+      try {
+        await scannerRef.current.clear();
+        scannerRef.current = null;
+      } catch (clearError) {
+        console.error("Error al limpiar escáner:", clearError);
+      }
+      setIsScanning(false);
     }
   };
 

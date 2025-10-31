@@ -217,3 +217,20 @@ model ShoppingSessionItem {
   @@index([sessionId])
   @@map("shopping_session_items")
 }
+
+// Modelo de Tickets de Compra
+model Ticket {
+  id            String   @id @default(cuid())
+  ticketNumber  String   @unique // Número único del ticket (ej: TKT-20250131-001)
+  sessionId     String?  @unique // ID de la sesión de compra
+  totalAmount   Decimal  @db.Decimal(10, 2) // Total gastado
+  budget        Decimal? @db.Decimal(10, 2) // Presupuesto establecido (si había)
+  itemCount     Int      @default(0) // Número de items
+  items         Json     // Items del carrito en formato JSON
+  budgetExceeded Boolean @default(false) // Si excedió el presupuesto
+  createdAt     DateTime @default(now())
+
+  @@index([ticketNumber])
+  @@index([createdAt])
+  @@map("tickets")
+}
