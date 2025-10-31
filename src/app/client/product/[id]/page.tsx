@@ -47,28 +47,26 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
-  // Detectar si viene de un QR y verificar si debe mostrar presupuesto
+  // Detectar si viene de un escaneo y verificar si debe mostrar presupuesto
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const fromQR = urlParams.get("from") === "qr";
 
-      if (fromQR) {
-        // Solo resetear si debe mostrar el modal (primera vez o sesión expirada)
-        if (shouldShowBudgetModal()) {
-          resetBudgetConfig();
-        }
+      if (fromQR && shouldShowBudgetModal()) {
+        // Es un escaneo y debe mostrar el modal de presupuesto
+        // Resetear la configuración para forzar la redirección
+        resetBudgetConfig();
       }
     }
   }, [resetBudgetConfig, shouldShowBudgetModal]);
 
   // Redirigir a configuración de presupuesto si debe mostrarse
   useEffect(() => {
-    // Solo redirigir si realmente debe mostrar el modal de presupuesto
-    if (shouldShowBudgetModal() && !budgetConfigured) {
+    if (shouldShowBudgetModal()) {
       router.replace(`/client/budget/${id}`);
     }
-  }, [budgetConfigured, id, router, shouldShowBudgetModal]);
+  }, [id, router, shouldShowBudgetModal]);
 
   // Cargar producto
   useEffect(() => {
@@ -89,10 +87,11 @@ export default function ProductPage({ params }: ProductPageProps) {
       }
     };
 
-    if (budgetConfigured) {
+    // Solo cargar el producto si NO debe mostrar el modal de presupuesto
+    if (!shouldShowBudgetModal()) {
       fetchProduct();
     }
-  }, [id, budgetConfigured]);
+  }, [id, shouldShowBudgetModal]);
 
   const handleAddToCart = () => {
     if (!product) return;

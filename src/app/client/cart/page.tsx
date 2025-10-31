@@ -1,10 +1,11 @@
 // src/app/client/cart/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import html2canvas from "html2canvas";
 import {
   ArrowLeft,
   Trash2,
@@ -12,6 +13,7 @@ import {
   Minus,
   Scan,
   CheckCircle,
+  Download,
 } from "lucide-react";
 import { useShopping } from "@/contexts/ShoppingContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -35,6 +37,9 @@ export default function CartPage() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [isCompletingSession, setIsCompletingSession] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [isDownloadingTicket, setIsDownloadingTicket] = useState(false);
+
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDeleteProduct = (productId: string) => {
     setProductToDelete(productId);
@@ -100,6 +105,49 @@ export default function CartPage() {
       console.error("Error al procesar QR:", error);
       // Si hay error, intentar usar el texto tal cual
       router.push(`/client/product/${decodedText}?from=qr`);
+    }
+  };
+
+  const handleDownloadTicket = async () => {
+    if (!ticketRef.current) return;
+
+    setIsDownloadingTicket(true);
+    try {
+      // Hacer visible temporalmente el ticket para capturarlo
+      ticketRef.current.style.display = "block";
+
+      // Capturar el elemento como imagen
+      const canvas = await html2canvas(ticketRef.current, {
+        backgroundColor: "#FFFFFF",
+        scale: 2, // Mayor calidad
+        logging: false,
+        useCORS: true,
+      });
+
+      // Ocultar nuevamente el ticket
+      ticketRef.current.style.display = "none";
+
+      // Convertir a blob y descargar
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          const date = new Date().toISOString().split("T")[0];
+          link.download = `ticket-pimpos-${date}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          showToast("Ticket descargado exitosamente", "success");
+        }
+      });
+    } catch (error) {
+      console.error("Error al descargar ticket:", error);
+      showToast("Error al descargar el ticket", "error");
+      if (ticketRef.current) {
+        ticketRef.current.style.display = "none";
+      }
+    } finally {
+      setIsDownloadingTicket(false);
     }
   };
 
@@ -308,6 +356,25 @@ export default function CartPage() {
                 </div>
               </div>
 
+              {/* Botón descargar ticket */}
+              <button
+                onClick={handleDownloadTicket}
+                disabled={isDownloadingTicket}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isDownloadingTicket ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Generando ticket...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-5 w-5" />
+                    Descargar ticket
+                  </>
+                )}
+              </button>
+
               {/* Botón finalizar */}
               <button
                 onClick={handleFinish}
@@ -393,6 +460,109 @@ export default function CartPage() {
         onClose={() => setShowScanner(false)}
         onScanSuccess={handleQRScanSuccess}
       />
+
+      {/* Ticket para descarga (invisible hasta que se genera) */}
+      <div
+        ref={ticketRef}
+        style={{ display: "none" }}
+        className="fixed top-0 left-0 w-[400px] bg-white p-8"
+      >
+        {/* Header del ticket */}
+        <div className="text-center mb-6 pb-4 border-b-2 border-gray-300">
+          <h1 className="text-3xl font-bold text-[#E37836] mb-2">
+            SmartTag Pimpos
+          </h1>
+          <p className="text-sm text-gray-600">
+            Ticket de Compra
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {new Date().toLocaleDateString("es-PE", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
+
+        {/* Lista de productos */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">
+            Productos ({cartState.itemCount})
+          </h2>
+          <div className="space-y-3">
+            {cartState.items.map((item, index) => (
+              <div key={item.product.id} className="pb-3 border-b border-gray-200">
+                <div className="flex justify-between items-start mb-1">
+                  <span className="font-semibold text-gray-900 text-sm flex-1">
+                    {index + 1}. {item.product.name}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>
+                    {item.quantity} x S/. {item.unitPrice.toFixed(2)}
+                  </span>
+                  <span className="font-bold text-gray-900">
+                    S/. {item.totalPrice.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Resumen */}
+        <div className="border-t-2 border-gray-300 pt-4 mb-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Subtotal:</span>
+            <span className="font-semibold text-gray-900">
+              S/. {cartState.totalSpent.toFixed(2)}
+            </span>
+          </div>
+
+          {cartState.budget !== null && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Presupuesto:</span>
+                <span className="font-semibold text-gray-900">
+                  S/. {cartState.budget.toFixed(2)}
+                </span>
+              </div>
+              <div
+                className={`flex justify-between text-sm font-bold ${
+                  cartState.budgetExceeded ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                <span>
+                  {cartState.budgetExceeded ? "Exceso:" : "Disponible:"}
+                </span>
+                <span>
+                  S/.{" "}
+                  {cartState.budgetExceeded
+                    ? (cartState.totalSpent - cartState.budget).toFixed(2)
+                    : cartState.budgetRemaining?.toFixed(2)}
+                </span>
+              </div>
+            </>
+          )}
+
+          <div className="border-t-2 border-gray-300 pt-3 mt-3">
+            <div className="flex justify-between">
+              <span className="text-xl font-bold text-gray-900">TOTAL</span>
+              <span className="text-2xl font-bold text-[#B55424]">
+                S/. {cartState.totalSpent.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-gray-500 border-t pt-4 mt-4">
+          <p className="mb-1">¡Gracias por tu compra!</p>
+          <p>SmartTag Pimpos - Tu compra inteligente</p>
+        </div>
+      </div>
     </>
   );
 }
