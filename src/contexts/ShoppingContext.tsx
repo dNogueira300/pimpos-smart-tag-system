@@ -27,6 +27,8 @@ interface ShoppingContextType {
   getBudgetStatus: () => BudgetStatus;
   getItemQuantity: (productId: string) => number;
   completeSession: () => Promise<void>;
+  isSessionExpired: () => boolean;
+  shouldShowBudgetModal: () => boolean;
 }
 
 const ShoppingContext = createContext<ShoppingContextType | undefined>(
@@ -34,6 +36,7 @@ const ShoppingContext = createContext<ShoppingContextType | undefined>(
 );
 
 const STORAGE_KEY = "pimpos_shopping_session";
+const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hora en milisegundos
 
 export function ShoppingProvider({ children }: { children: React.ReactNode }) {
   const [sessionId] = useState(() => {
@@ -49,6 +52,21 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return uuidv4();
+  });
+
+  const [sessionStartTime] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return parsed.sessionStartTime || new Date().toISOString();
+        } catch {
+          return new Date().toISOString();
+        }
+      }
+    }
+    return new Date().toISOString();
   });
 
   const [budgetConfigured, setBudgetConfigured] = useState(() => {
@@ -101,6 +119,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       const toStore = {
         sessionId,
+        sessionStartTime,
         budgetConfigured,
         items: cartState.items,
         budget: cartState.budget,
@@ -110,7 +129,7 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
     }
-  }, [cartState, sessionId, budgetConfigured]);
+  }, [cartState, sessionId, sessionStartTime, budgetConfigured]);
 
   // Agregar producto al carrito
   const addToCart = (product: Product, quantity: number) => {
@@ -319,12 +338,35 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(STORAGE_KEY);
       }
 
-      // Resetear estado
+      // Resetear estado completo incluyendo budgetConfigured
       setCartState(getInitialState());
+      setBudgetConfigured(false);
     } catch (error) {
       console.error("Error al completar sesión:", error);
       throw error;
     }
+  };
+
+  // Verificar si la sesión ha expirado (más de 1 hora)
+  const isSessionExpired = (): boolean => {
+    if (!sessionStartTime) return true;
+
+    const startTime = new Date(sessionStartTime).getTime();
+    const currentTime = new Date().getTime();
+    const timeDiff = currentTime - startTime;
+
+    return timeDiff > SESSION_TIMEOUT_MS;
+  };
+
+  // Determinar si se debe mostrar el modal de presupuesto
+  const shouldShowBudgetModal = (): boolean => {
+    // Si ya está configurado y la sesión NO ha expirado, no mostrar
+    if (budgetConfigured && !isSessionExpired()) {
+      return false;
+    }
+
+    // Si es el primer escaneo (no hay items y no está configurado) o la sesión expiró
+    return !budgetConfigured || isSessionExpired();
   };
 
   const value: ShoppingContextType = {
@@ -341,6 +383,8 @@ export function ShoppingProvider({ children }: { children: React.ReactNode }) {
     getBudgetStatus,
     getItemQuantity,
     completeSession,
+    isSessionExpired,
+    shouldShowBudgetModal,
   };
 
   return (
