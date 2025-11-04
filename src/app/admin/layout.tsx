@@ -235,7 +235,7 @@ function SidebarContent({
         {!collapsed && (
           <div className="text-center">
             <div className="text-2xl font-bold text-white">
-              Panadería Pimpos
+              Panadería y Minimarket Pimpos
             </div>
             <div className="text-white/90 font-medium text-sm mt-1">
               Panel Administrativo
