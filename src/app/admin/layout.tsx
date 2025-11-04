@@ -13,6 +13,7 @@ import {
   ChevronRight,
   LayoutDashboard,
   Receipt,
+  FolderPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
@@ -55,6 +56,12 @@ const sidebarItems = [
     icon: Plus,
     href: "/admin/products/new",
     description: "Agregar producto",
+  },
+  {
+    title: "Categorías",
+    icon: FolderPlus,
+    href: "/admin/categories",
+    description: "Gestionar categorías",
   },
   {
     title: "Ver Tickets",
