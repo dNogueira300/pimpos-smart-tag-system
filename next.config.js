@@ -1,9 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // ✅ Solo remotePatterns - domains está deprecado
   images: {
     unoptimized: true,
-    domains: ["localhost", "pimpos-system.vercel.app"],
     remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "pimpos-system.vercel.app",
+      },
       {
         protocol: "https",
         hostname: "**",
@@ -11,22 +19,26 @@ const nextConfig = {
     ],
   },
 
-  // PASO 1: Para 'next dev --turbopack'
+  // ✅ Turbopack config en lugar de webpack
+  turbopack: {
+    // Configuración para Turbopack en lugar de webpack
+  },
+
+  // ✅ Mantener para compatibilidad con Prisma/bcrypt
   serverExternalPackages: ["@prisma/client", "bcryptjs"],
 
-  // Configuración mínima para Vercel
+  // ✅ Para Vercel deployment
   ...(process.env.NODE_ENV === "production" && {
     output: "standalone",
   }),
 
-  // Para 'next build' (producción en Vercel)
-  // Esto es VITAL para que Prisma y bcrypt funcionen en el entorno serverless.
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push("@prisma/client", "bcryptjs");
-    }
-    return config;
-  },
+  // ❌ ELIMINAR - conflicta con Turbopack
+  // webpack: (config, { isServer }) => {
+  //   if (isServer) {
+  //     config.externals.push("@prisma/client", "bcryptjs");
+  //   }
+  //   return config;
+  // },
 };
 
 module.exports = nextConfig;
